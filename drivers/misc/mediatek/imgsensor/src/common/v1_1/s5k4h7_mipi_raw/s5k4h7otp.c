@@ -26,7 +26,7 @@
 #include <linux/types.h>
 #include <linux/slab.h>
 
-//#ifndef VENDOR_EDIT
+//#ifndef OPLUS_FEATURE_CAMERA_COMMON
 //#include "kd_camera_hw.h"
 /*Caohua.Lin@Camera.Drv, 20180126 remove to adapt with mt6771*/
 //#endif

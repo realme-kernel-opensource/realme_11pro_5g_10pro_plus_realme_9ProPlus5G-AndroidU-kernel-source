@@ -27,7 +27,12 @@ static const char *this_state_name[DTS_GPIO_STATE_MAX] = {
 	"lcd_bias_enp0_gpio",
 	"lcd_bias_enp1_gpio",
 	"lcd_bias_enn0_gpio",
-	"lcd_bias_enn1_gpio"
+	"lcd_bias_enn1_gpio",
+//#ifdef OPLUS_BUG_STABILITY
+/*yanghanyue@RM.MM.Display.LCD.Params,2020-11-24 add for pascal_e panel*/
+	"lcd_vddio18_en0_gpio",
+	"lcd_vddio18_en1_gpio"
+//#endif
 };
 
 /* pinctrl implementation */

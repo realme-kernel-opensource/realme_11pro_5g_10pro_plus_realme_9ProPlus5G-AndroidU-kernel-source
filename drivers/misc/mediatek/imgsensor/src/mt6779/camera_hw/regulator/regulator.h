@@ -13,6 +13,11 @@
 
 #include "imgsensor_hw.h"
 #include "imgsensor_common.h"
+/*Henry.Chang@Cam.Drv add for 19551 20191010*/
+#ifndef OPLUS_FEATURE_CAMERA_COMMON
+#define OPLUS_FEATURE_CAMERA_COMMON
+#endif
+#include "imgsensor.h"
 
 enum REGULATOR_VOLTAGE {
 	REGULATOR_VOLTAGE_0    = 0,
@@ -32,6 +37,13 @@ enum REGULATOR_TYPE {
 	REGULATOR_TYPE_VCAMA,
 	REGULATOR_TYPE_VCAMD,
 	REGULATOR_TYPE_VCAMIO,
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+	//Feiping.Li@Cam.Drv, 20200402, add for fix coverity -- 69275
+	REGULATOR_TYPE_VCAMA_1,
+	/* Henry.Chang@Camera.Driver add for vcamaf 20191016 */
+	REGULATOR_TYPE_VCAMD_1,
+	REGULATOR_TYPE_VCAMAF,
+#endif
 	REGULATOR_TYPE_MAX_NUM
 };
 
@@ -45,7 +57,10 @@ struct REGULATOR {
 	atomic_t          enable_cnt[
 		IMGSENSOR_SENSOR_IDX_MAX_NUM][REGULATOR_TYPE_MAX_NUM];
 };
-
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+/*Henry.Chang@Cam.Drv add for 19551 20191010*/
+extern struct IMGSENSOR gimgsensor;
+#endif
 enum IMGSENSOR_RETURN imgsensor_hw_regulator_open(
 	struct IMGSENSOR_HW_DEVICE **pdevice);
 

@@ -44,7 +44,12 @@ bool vpu_is_disabled(struct vpu_device *vd);
 
 /* Time Constrains */
 #define VPU_CMD_TIMEOUT  (9000)
+#ifdef CONFIG_OPLUS_APUSYS_LATENCY
+/*weiriqin@camera.drv 20211201  add for APU low power*/
+#define VPU_PWR_OFF_LATENCY (200)
+#else
 #define VPU_PWR_OFF_LATENCY (3000)
+#endif
 #define WAIT_CMD_LATENCY_US (2000)
 #define WAIT_CMD_RETRY  (5)
 #define WAIT_XOS_LATENCY_US (500)

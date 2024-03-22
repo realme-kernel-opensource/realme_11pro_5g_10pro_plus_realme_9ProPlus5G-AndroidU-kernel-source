@@ -84,6 +84,12 @@ int aee_nested_printf(const char *fmt, ...)
 	return total_len;
 }
 
+#ifdef OPLUS_FEATURE_PHOENIX
+//Kun.Hu@PSW.TECH.RELIABILTY, 2019/03/03, Add for project phoenix
+extern void deal_fatal_err(void);
+extern int kernel_panic_happened;
+#endif /* OPLUS_FEATURE_PHOENIX */
+
 static int num_die;
 int mrdump_common_die(u8 fiq_step, int reboot_reason, const char *msg,
 		      struct pt_regs *regs)
@@ -92,6 +98,16 @@ int mrdump_common_die(u8 fiq_step, int reboot_reason, const char *msg,
 	int next_step;
 
 	num_die++;
+
+#ifdef OPLUS_FEATURE_PHOENIX
+	//Kun.Hu@PSW.TECH.RELIABILTY, 2019/03/03, Add for project phoenix
+	if((AEE_REBOOT_MODE_KERNEL_OOPS == reboot_reason || AEE_REBOOT_MODE_KERNEL_PANIC == reboot_reason)
+		&& !kernel_panic_happened)
+	{
+		kernel_panic_happened = 1;
+		deal_fatal_err();
+	}
+#endif /* OPLUS_FEATURE_PHOENIX */
 
 	last_step = aee_rr_curr_fiq_step();
 	if (num_die > 1) {

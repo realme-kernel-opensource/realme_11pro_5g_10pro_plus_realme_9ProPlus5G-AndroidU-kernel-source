@@ -87,3 +87,26 @@ endif
 obj-$(CONFIG_QRTR)		+= qrtr/
 obj-$(CONFIG_NET_NCSI)		+= ncsi/
 obj-$(CONFIG_XDP_SOCKETS)	+= xdp/
+
+#ifdef OPLUS_FEATURE_WIFI_CAPCENTER
+#XuFenghua@CONNECTIVITY.WIFI.BASIC.CAPCENTER.190453, 2020/7/6, Add for Oplus Wifi capability center
+obj-$(CONFIG_OPLUS_FEATURE_WIFI_CAPCENTER) += oplus_wificapcenter/
+#endif /* OPLUS_FEATURE_WIFI_CAPCENTER */
+
+#ifdef OPLUS_FEATURE_WIFI_SLA
+#HuangJunyuan@CONNECTIVITY.WIFI.INTERNET.1197891, 2018/04/10,Add code for oplus sla function
+obj-$(CONFIG_OPLUS_FEATURE_WIFI_SLA)                  	+= oplus_connectivity_sla/
+#endif /* OPLUS_FEATURE_WIFI_SLA */
+
+#ifdef OPLUS_FEATURE_DATA_EVAL
+#PengHao@NETWORK.DATA.8124, 2020/05/08, Add for network quality evaluation.
+obj-$(CONFIG_OPLUS_FEATURE_DATA_EVAL) += oplus_score/
+#endif /* OPLUS_FEATURE_DATA_EVAL */
+
+# ShiQianhua@NETWORK.DATA.2341538 2021/10/18 add for network modules
+obj-y                           += oplus_modules/
+
+#ifdef OPLUS_FEATURE_NWPOWER
+#Asiga@PSW.NW.DATA.2120730, 2019/06/26, add for classify glink wakeup services and count IPA wakeup.
+obj-y                           += oplus_nwpower/
+#endif /* OPLUS_FEATURE_NWPOWER */

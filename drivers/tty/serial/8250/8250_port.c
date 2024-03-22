@@ -11,8 +11,11 @@
  *  membase is an 'ioremapped' cookie.
  */
 
+#ifndef OPLUS_FEATURE_CHG_BASIC
+/* Hailong.Shen@BSP.CHG.Basic, 2021/05/28, undefine SUPPORT_SYSRQ to avoid panic */
 #if defined(CONFIG_SERIAL_8250_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
 #define SUPPORT_SYSRQ
+#endif
 #endif
 
 #include <linux/module.h>

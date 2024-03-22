@@ -148,7 +148,13 @@ void imgsensor_i2c_filter_msg(struct IMGSENSOR_I2C_CFG *pi2c_cfg, bool en);
 
 #ifdef IMGSENSOR_LEGACY_COMPAT
 void imgsensor_i2c_set_device(struct IMGSENSOR_I2C_CFG *pi2c_cfg);
+
+#ifndef OPLUS_FEATURE_CAMERA_COMMON
+//weiriqin@Cam.drv 2020/06/18, Modify for async power-on-off, ALPS04924900 ALPS05201837
+extern struct IMGSENSOR_I2C_CFG *pgi2c_cfg_legacy;
+#else
 struct IMGSENSOR_I2C_CFG *imgsensor_i2c_get_device(void);
+#endif
 #endif
 
 #endif

@@ -63,6 +63,7 @@ endif
 obj-$(CONFIG_MTK_ECCCI_DRIVER) +=  eccci/
 obj-$(CONFIG_MTK_EMI_LEGACY) += emi/
 obj-$(CONFIG_MTK_EMI_BWL)	+= emi_bwl/
+obj-$(CONFIG_MTK_BOOT_REASON) += boot_reason/
 obj-$(CONFIG_MTK_EMI_MPU) += emi_mpu/
 obj-$(CONFIG_MMPROFILE) += mmp/
 obj-$(CONFIG_MTK_TRUSTED_MEMORY_SUBSYSTEM) += trusted_mem/
@@ -145,6 +146,12 @@ obj-$(CONFIG_MTK_STATIC_POWER) += leakage_table_v2/
 obj-$(CONFIG_MTK_UNIFY_POWER) += upower_v2/
 endif
 
+
+ifeq ($(CONFIG_MACH_MT6833),y)
+#sunyunpeng@BSP.CAMERA,2022.11.24, add for gc6133_iic_yuv_bladec
+obj-$(CONFIG_GC_GC6133_YUV) += imgsensor/src/mt6853/camera_project/k6833v1_64/gc6133_iic_yuv_bladec/
+endif
+
 obj-$(CONFIG_PRINTK_MTK) += mtprintk/
 obj-$(CONFIG_MTK_LEDS) += leds/
 obj-$(CONFIG_MT6360_DBG) += subpmic/
@@ -192,6 +199,11 @@ ifeq ($(CONFIG_MACH_MT6833),y)
 obj-$(CONFIG_THERMAL)   += thermal/
 endif
 obj-y += timer/
+
+#ifdef OPLUS_BUG_STABILITY
+#wanghao@BSP.Bootloader.Bootflow,2020-06-20, add for get_boot_mode API
+obj-$(CONFIG_MTK_BOOT) += boot/
+#endif
 obj-$(CONFIG_MTK_DBGTOP) += dbgtop/
 obj-$(CONFIG_MTK_DFD_INTERNAL_DUMP) += dfd/
 obj-$(CONFIG_MTK_GIC_EXT) += ext_gic/
@@ -207,3 +219,6 @@ obj-$(CONFIG_MTK_MDDP_SUPPORT) += mddp/
 obj-$(CONFIG_MTK_GATE_IC) += gate_ic/
 obj-$(CONFIG_MTK_FREQ_HOPPING) += freqhopping/
 obj-$(CONFIG_MTK_TASK_TURBO) += task_turbo/
+#GaoWang@Cam.Drv add for 20682 camera BringUp 20200918
+obj-$(CONFIG_CAMERA_LDO) += camera_ldo/
+obj-$(CONFIG_LDO_AW37004) += aw37004/

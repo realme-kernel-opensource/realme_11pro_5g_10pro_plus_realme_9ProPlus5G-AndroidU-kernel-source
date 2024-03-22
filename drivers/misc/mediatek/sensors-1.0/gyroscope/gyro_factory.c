@@ -64,6 +64,10 @@ static long gyro_factory_unlocked_ioctl(struct file *file, unsigned int cmd,
 			pr_debug(
 				"GYROSCOPE_IOCTL_INIT, enable: %d, sample_period:%dms\n",
 				flag, 5);
+			#ifdef OPLUS_FEATURE_SENSOR
+			/*Fei.Mo@PSW.BSP.Sensor, 2017/12/18, Add for gyro ftm test*/
+			msleep(500);
+			#endif /*OPLUS_FEATURE_SENSOR*/
 		} else {
 			pr_err("GYROSCOPE_IOCTL_INIT NULL\n");
 			return -EINVAL;

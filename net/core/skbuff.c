@@ -1953,6 +1953,12 @@ void *__pskb_pull_tail(struct sk_buff *skb, int delta)
 				insp = list;
 			} else {
 				/* Eaten partially. */
+				// #ifdef OPLUS_BUG_COMPATIBILITY
+				//youxinyu@NETWORK.DATA.4928796, 2023/2/14, Add for solve crash error ”/DFX/Stability/kernel/Uk/Kernel (KE)/PC is at_>] skb_segment+0xc34_0xc64“，google link: https://android-review.googlesource.com/c/kernel/common/+/2368309
+				if (skb_is_gso(skb) && !list->head_frag &&
+					skb_headlen(list))
+					skb_shinfo(skb)->gso_type |= SKB_GSO_DODGY;
+				// #endif /*OPLUS_BUG_COMPATIBILITY*/
 
 				if (skb_shared(list)) {
 					/* Sucks! We need to fork list. :-( */

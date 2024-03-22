@@ -2131,13 +2131,26 @@ sd_spinup_disk(struct scsi_disk *sdkp)
 			 * doesn't have any media in it, don't bother
 			 * with any more polling.
 			 */
+#ifdef OPLUS_FEATURE_CHG_BASIC
+/* wangyun@BSP.CHG.Basic, 2020/04/13, lzj Modify for OTG */
+			if (retries > 25) {
+				if (media_not_present(sdkp, &sshdr))
+					return;
+			}
+#else
 			if (media_not_present(sdkp, &sshdr))
 				return;
+#endif /*OPLUS_FEATURE_CHG_BASIC*/
 
 			if (the_result)
 				sense_valid = scsi_sense_valid(&sshdr);
 			retries++;
-		} while (retries < 3 && 
+#ifdef OPLUS_FEATURE_CHG_BASIC
+/* wangyun@BSP.CHG.Basic, 2020/04/13, lzj Modify for OTG */
+		} while (retries < 30 &&
+#else
+		} while (retries < 3 &&
+#endif /*OPLUS_FEATURE_CHG_BASIC*/
 			 (!scsi_status_is_good(the_result) ||
 			  ((driver_byte(the_result) == DRIVER_SENSE) &&
 			  sense_valid && sshdr.sense_key == UNIT_ATTENTION)));

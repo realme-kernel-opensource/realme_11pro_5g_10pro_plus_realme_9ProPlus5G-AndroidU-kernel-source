@@ -77,7 +77,7 @@ static bool _read_S5K3P8_eeprom(kal_uint16 addr, BYTE *data, kal_uint32 size)
 
 bool read_3P8_eeprom(kal_uint16 addr, BYTE *data, kal_uint32 size)
 {
-	#ifdef VENDOR_EDIT
+	#ifdef OPLUS_FEATURE_CAMERA_COMMON
 	/*zhengjiang.zhu@Camera.driver, 2017/06/30 add for camera otp*/
 	int i = 0;
 	int proc1_flag = 0;
@@ -101,7 +101,7 @@ bool read_3P8_eeprom(kal_uint16 addr, BYTE *data, kal_uint32 size)
 			return false;
 		}
 	}
-	#ifdef VENDOR_EDIT
+	#ifdef OPLUS_FEATURE_CAMERA_COMMON
 	/*zhengjiang.zhu@Camera.driver, 2017/06/30 add for camera otp*/
 	proc1_flag = S5K3P8_eeprom_data[0x15F0-0x1400];
 	proc2_flag = S5K3P8_eeprom_data[0x1926-0x1400];

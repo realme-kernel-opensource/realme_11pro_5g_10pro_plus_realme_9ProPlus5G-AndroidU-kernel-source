@@ -265,18 +265,139 @@ void scp_enable_sram(void)
 	writel(0, SCP_CLK_CTRL_TCM_TAIL_SRAM_PD);
 }
 
+enum sram_state{
+	SRAM_RESET_TEST_FAIL = -2,
+	SRAM_RESET_NULL = -1,
+	SRAM_RESET_PASS = 0,
+};
+
+int reset_sram_state_machine(void)
+{
+	int ret = SRAM_RESET_PASS;
+	uint32_t reg_temp, value;
+
+
+	if (SCP_TCM == NULL)
+		return SRAM_RESET_NULL;
+
+	/**********************************************************************
+	 * SRAM read/write test.
+	 *********************************************************************/
+	// Loader[0]
+	writel(0x33CCCC33, SCP_TCM + 0);
+	value = readl(SCP_TCM + 0);
+	if (value != 0x33CCCC33) {
+		pr_notice("[SCP] SRAM W/R failed! loader[0]: 0x%08x\n", value);
+		ret = SRAM_RESET_TEST_FAIL;
+	}
+
+	// Loader[4]
+	writel(0x44BBBB44, SCP_TCM + 4);
+	value = readl(SCP_TCM + 4);
+	if (value != 0x44BBBB44) {
+		pr_notice("[SCP] SRAM W/R failed! loader[4]: 0x%08x\n", value);
+		ret = SRAM_RESET_TEST_FAIL;
+	}
+
+	if (ret == SRAM_RESET_PASS) {
+		pr_notice("[SCP] sram read/write test pass\n");
+		pr_notice("[SCP] No need to reset SRAM state machine\n");
+		return SRAM_RESET_PASS;
+	}
+
+	pr_notice("[SCP] Reset SRAM state machine.\n");
+	/**********************************************************************
+	 * Reset SRAM state machine.
+	 *********************************************************************/
+
+	value = readl(scpreg.clkctrl + 0x20);
+	pr_notice("[SCP] old scpreg.clkctrl + 0x20: 0x%08x\n", value);
+	writel(value & ~(1u), scpreg.clkctrl + 0x20);
+	pr_notice("[SCP] new scpreg.clkctrl + 0x20: 0x%08x\n", readl(scpreg.clkctrl + 0x20));
+
+	writel(0xffffffff, SCP_CPU0_SRAM_PD);
+	writel(0xffffffff, SCP_L2TCM_SRAM_PD0);
+	writel(0xffffffff, SCP_L2TCM_SRAM_PD1);
+	writel(0xffffffff, SCP_L2TCM_SRAM_PD2);
+
+	pr_notice("[SCP] dump sram state before reset sram\n");
+	pr_notice("[SCP] SCP_CPU0_SRAM_PD: 0x%08x\n", readl(SCP_CPU0_SRAM_PD));
+	pr_notice("[SCP] SCP_L2TCM_SRAM_PD0: 0x%08x\n", readl(SCP_L2TCM_SRAM_PD0));
+	pr_notice("[SCP] SCP_L2TCM_SRAM_PD1: 0x%08x\n", readl(SCP_L2TCM_SRAM_PD1));
+	pr_notice("[SCP] SCP_L2TCM_SRAM_PD2: 0x%08x\n", readl(SCP_L2TCM_SRAM_PD2));
+
+	/*enable sram, enable 1 block per time*/
+	for (reg_temp = 0xffffffff; reg_temp != 0;) {
+		reg_temp = reg_temp >> 1;
+		udelay(1);
+		writel(reg_temp, SCP_L2TCM_SRAM_PD0);
+	}
+	for (reg_temp = 0xffffffff; reg_temp != 0;) {
+		reg_temp = reg_temp >> 1;
+		udelay(1);
+		writel(reg_temp, SCP_L2TCM_SRAM_PD1);
+	}
+	for (reg_temp = 0xffffffff; reg_temp != 0;) {
+		reg_temp = reg_temp >> 1;
+		udelay(1);
+		writel(reg_temp, SCP_L2TCM_SRAM_PD2);
+	}
+	for (reg_temp = 0xffffffff; reg_temp != 0;) {
+		reg_temp = reg_temp >> 1;
+		udelay(1);
+		writel(reg_temp, SCP_CPU0_SRAM_PD);
+	}
+
+	pr_notice("[SCP] dump sram state after reset sram\n");
+        pr_notice("[SCP] SCP_CPU0_SRAM_PD: 0x%08x\n", readl(SCP_CPU0_SRAM_PD));
+        pr_notice("[SCP] SCP_L2TCM_SRAM_PD0: 0x%08x\n", readl(SCP_L2TCM_SRAM_PD0));
+        pr_notice("[SCP] SCP_L2TCM_SRAM_PD1: 0x%08x\n", readl(SCP_L2TCM_SRAM_PD1));
+        pr_notice("[SCP] SCP_L2TCM_SRAM_PD2: 0x%08x\n", readl(SCP_L2TCM_SRAM_PD2));
+
+	/**********************************************************************
+	 * SRAM read/write test.
+	 *********************************************************************/
+	// Loader[0]
+	writel(0x33CCCC33, SCP_TCM + 0);
+	value = readl(SCP_TCM + 0);
+	if (value != 0x33CCCC33) {
+		pr_notice("[SCP] SRAM W/R failed! loader[0]: 0x%08x\n", value);
+		return SRAM_RESET_TEST_FAIL;
+	}
+
+	// Loader[4]
+	writel(0x44BBBB44, SCP_TCM + 4);
+	value = readl(SCP_TCM + 4);
+	if (value != 0x44BBBB44) {
+		pr_notice("[SCP] SRAM W/R failed! loader[4]: 0x%08x\n", value);
+		return SRAM_RESET_TEST_FAIL;
+	}
+
+	pr_notice("[SCP] Reset SRAM state machine done\n");
+	mdelay(3000);
+	return SRAM_RESET_PASS;
+}
+
+
 /*
  * scp_sys_reset, reset scp
  */
 int scp_sys_full_reset(void)
 {
 	void *tmp;
+	int ret = 0;
 #if SCP_RESERVED_MEM && IS_ENABLED(CONFIG_OF_RESERVED_MEM) && SCP_SECURE_DUMP_MEASURE
 	int idx;
 #endif
 #if SCP_RESERVED_MEM && IS_ENABLED(CONFIG_OF_RESERVED_MEM)
 	uint64_t restore_start, restore_end;
 #endif
+
+    ret = reset_sram_state_machine();
+	if (ret) {
+		pr_err("[SCP] reset_sram_state_machine failed, ret=%d\n", ret);
+		return -1;
+	}
 
 	pr_notice("[SCP] %s\n", __func__);
 

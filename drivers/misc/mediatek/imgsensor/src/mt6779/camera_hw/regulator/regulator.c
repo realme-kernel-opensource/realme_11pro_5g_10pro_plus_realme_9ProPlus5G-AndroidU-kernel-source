@@ -5,7 +5,13 @@
 
 #include "regulator.h"
 
-
+/*Henry.Chang@Cam.Drv add for 19551 20191010*/
+#ifndef OPLUS_FEATURE_CAMERA_COMMON
+#define OPLUS_FEATURE_CAMERA_COMMON
+#endif
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+#include <soc/oplus/system/oplus_project.h>
+#endif
 static const int regulator_voltage[] = {
 	REGULATOR_VOLTAGE_0,
 	REGULATOR_VOLTAGE_1000,
@@ -24,8 +30,28 @@ struct REGULATOR_CTRL regulator_control[REGULATOR_TYPE_MAX_NUM] = {
 	{"vcama"},
 	{"vcamd"},
 	{"vcamio"},
+	#ifdef OPLUS_FEATURE_CAMERA_COMMON
+	//Feiping.Li@Cam.Drv, 20200402, add for fix coverity -- 69275
+	{"vcama1"},
+	/* Henry.Chang@Camera.Driver add for vcamaf 20191016 */
+	{"vcamd1"},
+	//Feiping.Li@Cam.Drv, 20200402, add for 19537 AF power
+	{"vcamaf"},
+	#endif
 };
 
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+/* Tan.Bowen@Camera.Driver 20191016 add for project 19357*/
+static struct regulator *gVCamA = NULL;
+
+/*Henry.Chang@Camera.Driver add for P90Q AF_Lens 20191022*/
+struct regulator *regulator_get_regVCAMAF(void)
+{
+	struct IMGSENSOR *pimgsensor = &gimgsensor;
+	return regulator_get(&((pimgsensor->hw.common.pplatform_device)->dev), "vcamaf");
+}
+EXPORT_SYMBOL(regulator_get_regVCAMAF);
+#endif
 static struct REGULATOR reg_instance;
 
 static enum IMGSENSOR_RETURN regulator_init(
@@ -89,6 +115,73 @@ static enum IMGSENSOR_RETURN regulator_release(void *pinstance)
 	}
 	return IMGSENSOR_RETURN_SUCCESS;
 }
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+/* Tan.Bowen@Camera.Driver 20191016 add for project 19357*/
+static int kdVAPowerOn(enum IMGSENSOR_HW_PIN_STATE pin_state)
+{
+    struct IMGSENSOR *pimgsensor = &gimgsensor;
+    gVCamA = regulator_get(&((pimgsensor->hw.common.pplatform_device)->dev), "vcama");
+
+    if (pin_state == IMGSENSOR_HW_PIN_STATE_LEVEL_0)
+    {
+        if (regulator_set_voltage(gVCamA,
+            regulator_voltage[IMGSENSOR_HW_PIN_STATE_LEVEL_0],
+            regulator_voltage[IMGSENSOR_HW_PIN_STATE_LEVEL_0]))
+        {
+            pr_info("[regulator]fail to regulator_set_voltage, powerId:%d\n",
+            regulator_voltage[IMGSENSOR_HW_PIN_STATE_LEVEL_0]);
+        }
+        if (regulator_disable(gVCamA))
+        {
+            pr_info("[regulator]fail to regulator_disable gVCamIO\n");
+            return IMGSENSOR_RETURN_ERROR;
+        }
+    }
+    else
+    {
+        if (regulator_set_voltage(gVCamA,
+            regulator_voltage[pin_state - IMGSENSOR_HW_PIN_STATE_LEVEL_0],
+            regulator_voltage[pin_state - IMGSENSOR_HW_PIN_STATE_LEVEL_0]))
+            {
+                pr_info("[regulator]fail to regulator_set_voltage, powerId:%d\n",
+                regulator_voltage[pin_state - IMGSENSOR_HW_PIN_STATE_LEVEL_0]);
+            }
+        if (regulator_enable(gVCamA))
+            {
+                pr_info("[regulator]fail to regulator_enable\n");
+                return IMGSENSOR_RETURN_ERROR;
+            }
+    }
+    return IMGSENSOR_RETURN_SUCCESS;
+}
+#endif
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+//Feiping.Li@Cam.Drv, 20191231, add for solve camera cause reboot
+extern struct IMGSENSOR gimgsensor;
+static struct regulator *regulator_reinit(void *pinstance, int sensor_idx, int type)
+{
+    struct REGULATOR *preg = (struct REGULATOR *)pinstance;
+    char str_regulator_name[LENGTH_FOR_SNPRINTF];
+    struct IMGSENSOR *pimgsensor = &gimgsensor;
+    snprintf(str_regulator_name,
+            sizeof(str_regulator_name),
+            "cam%d_%s",
+            sensor_idx,
+            regulator_control[type].pregulator_type);
+    preg->pregulator[sensor_idx][type] =
+        regulator_get(&((pimgsensor->hw.common.pplatform_device)->dev), str_regulator_name);
+    pr_err("reinit %s regulator[%d][%d] = %pK\n", str_regulator_name,
+            sensor_idx, type, preg->pregulator[sensor_idx][type]);
+    msleep(10);
+    if(IS_ERR(preg->pregulator[sensor_idx][type])){
+        pr_err("regulator reinit fail %pK\n",preg->pregulator[sensor_idx][type]);
+        return NULL;
+    } else {
+    	pr_err("regulator reinit success");
+    	return preg->pregulator[sensor_idx][type];
+    }
+}
+#endif
 
 static enum IMGSENSOR_RETURN regulator_set(
 	void *pinstance,
@@ -101,19 +194,49 @@ static enum IMGSENSOR_RETURN regulator_set(
 	int reg_type_offset;
 	atomic_t             *enable_cnt;
 
-
+	#ifdef OPLUS_FEATURE_CAMERA_COMMON
+	/* Henry.Chang@Camera.Driver add for vcamaf 20191016 */
+	if (pin > IMGSENSOR_HW_PIN_AFVDD   ||
+		pin < IMGSENSOR_HW_PIN_AVDD    ||
+		pin_state < IMGSENSOR_HW_PIN_STATE_LEVEL_0 ||
+		pin_state >= IMGSENSOR_HW_PIN_STATE_LEVEL_HIGH)
+		return IMGSENSOR_RETURN_ERROR;
+	#else
 	if (pin > IMGSENSOR_HW_PIN_DOVDD   ||
 	    pin < IMGSENSOR_HW_PIN_AVDD    ||
 	    pin_state < IMGSENSOR_HW_PIN_STATE_LEVEL_0 ||
 	    pin_state >= IMGSENSOR_HW_PIN_STATE_LEVEL_HIGH ||
 	    sensor_idx < 0)
 		return IMGSENSOR_RETURN_ERROR;
+	#endif
+
+    #ifdef OPLUS_FEATURE_CAMERA_COMMON
+	/* Tan.Bowen@Camera.Driver 20191016 add for project 19357&19354&19358&19359*/
+	if ((is_project(19357) || is_project(19354) || is_project(19358) || is_project(19359))
+		&& (sensor_idx == IMGSENSOR_SENSOR_IDX_SUB || sensor_idx == IMGSENSOR_SENSOR_IDX_MAIN2 || sensor_idx == IMGSENSOR_SENSOR_IDX_MAIN3) && (pin == IMGSENSOR_HW_PIN_AVDD))
+	{
+		int ret = kdVAPowerOn(pin_state);
+		if (ret)
+			pr_info("kdVAPowerOn failed ret:%d", ret);
+		return ret;
+	}
+    #endif
 
 	reg_type_offset = REGULATOR_TYPE_VCAMA;
 
 	pregulator =
 		preg->pregulator[sensor_idx][
 			reg_type_offset + pin - IMGSENSOR_HW_PIN_AVDD];
+
+	#ifdef OPLUS_FEATURE_CAMERA_COMMON
+	//Feiping.Li@Cam.Drv, 20200102, add for porting 19040 sensor
+	if(IS_ERR(pregulator)){
+            	pregulator = regulator_reinit(preg, sensor_idx, reg_type_offset + pin - IMGSENSOR_HW_PIN_AVDD);
+		if (IS_ERR(pregulator)) {
+                	return IMGSENSOR_RETURN_ERROR;
+		}
+        }
+	#endif
 
 	enable_cnt =
 		&preg->enable_cnt[sensor_idx][

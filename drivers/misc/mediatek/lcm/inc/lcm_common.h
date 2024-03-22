@@ -9,7 +9,12 @@
 
 #include "lcm_drv.h"
 
-#if defined(MTK_LCM_DEVICE_TREE_SUPPORT)
+//#ifndef OPLUS_BUG_STABILITY
+/*yanghanyue@RM.MM.Display.LCD.Params,2020-11-24 add for pascal_e panel*/
+//#if defined(MTK_LCM_DEVICE_TREE_SUPPORT)
+//#else
+#if (defined(MTK_LCM_DEVICE_TREE_SUPPORT) || defined(MTK_LCM_DEVICE_TREE_SUPPORT_PASCAL_E))
+//#endif
 enum LCM_STATUS {
 	LCM_STATUS_OK = 0,
 	LCM_STATUS_ERROR,
@@ -19,7 +24,14 @@ enum LCM_STATUS {
 void lcm_common_parse_dts(const struct LCM_DTS *DTS,
 	unsigned char force_update);
 void lcm_common_set_util_funcs(const struct LCM_UTIL_FUNCS *util);
+//#ifdef OPLUS_BUG_STABILITY
+/*yanghanyue@RM.MM.Display.LCD.Params,2020-11-24 add for pascal_e panel*/
+#if defined(MTK_LCM_DEVICE_TREE_SUPPORT_PASCAL_E)
+void lcm_common_get_params(struct LCM_PARAMS *params);
+#else
 void lcm_common_get_params(LCM_PARAMS *params);
+#endif
+//#endif
 void lcm_common_init(void);
 void lcm_common_suspend(void);
 void lcm_common_resume(void);

@@ -68,6 +68,27 @@
 #include "ddp_reg_mmsys.h"
 #include "ddp_reg.h"
 
+/* #ifdef OPLUS_BUG_STABILITY */
+/** JianBin.Zhang@PSW.MM.Display.LCD.Stability, 2020/05/26,* add for display decoupling*/
+#include "oplus_display_private_api.h"
+/*
+* liping-m@PSW.MM.Display.LCD.Stability, 2018/07/21,
+* add power seq api for ulps
+*/
+/* #include <soc/oplus/oppo_project.h> */
+/* #ifdef OPLUS_FEATURE_MM_FEEDBACK */
+/* Ling.Guo@PSW.MM.Display.LCD.Machine, 2018/12/03,add for mm kevent fb. */
+#include <soc/oplus/system/oplus_mm_kevent_fb.h>
+/* #endif */ /* OPLUS_FEATURE_MM_FEEDBACK */
+/* #endif */ /* OPLUS_BUG_STABILITY */
+
+/* #ifdef OPLUS_BUG_STABILITY */
+/*Cong.Dai@PSW.BSP.TP, 2017/11/18, add for stop lcd esd check until firmware update*/
+static atomic_t esd_check_fw_updated = ATOMIC_INIT(0);
+extern int disp_lcm_poweron_before_ulps(struct disp_lcm_handle *plcm);
+extern int disp_lcm_poweroff_after_ulps(struct disp_lcm_handle *plcm);
+/* #endif */ /* OPLUS_BUG_STABILITY */
+
 /* For abnormal check */
 static struct task_struct *primary_display_check_task;
 static struct task_struct *primary_display_recovery_thread;
@@ -101,6 +122,15 @@ static atomic_t esd_ext_te_1_event = ATOMIC_INIT(0);
 static unsigned int extd_esd_check_mode;
 static unsigned int extd_esd_check_enable;
 #endif
+
+//#ifdef OPLUS_BUG_STABILITY
+/*JainBin.Zhang@PSW.MM.Display.LCD.Stability 2020/05/09, Add for lcm ic esd recovery backlight */
+unsigned int esd_recovery_backlight_level = 2;
+/*Yongpeng.Yi@PSW.MM.Display.LCD.Stability, 2018/07/04, add for hx83112a lcd esd read reg*/
+static atomic_t enable_lcm_recovery = ATOMIC_INIT(0);
+extern int _set_backlight_by_cmdq(unsigned int level);
+extern bool flag_lcd_off;
+//#endif /* OPLUS_BUG_STABILITY */
 
 atomic_t enable_ovl0_recovery = ATOMIC_INIT(0);
 atomic_t enable_ovl0_2l_recovery = ATOMIC_INIT(0);
@@ -439,6 +469,33 @@ done:
 	return ret;
 }
 
+/* #ifdef OPLUS_BUG_STABILITY */
+/*Cong.Dai@PSW.BSP.TP, 2017/11/18, add for stop lcd esd check until firmware update*/
+void display_esd_check_enable_bytouchpanel(bool enable)
+{
+	if (enable) {
+		atomic_set(&esd_check_fw_updated, 1);
+	} else {
+		atomic_set(&esd_check_fw_updated, 0);
+	}
+}
+EXPORT_SYMBOL(display_esd_check_enable_bytouchpanel);
+/* #endif */ /* OPLUS_BUG_STABILITY */
+
+/* #ifdef OPLUS_BUG_STABILITY */
+
+/*Yongpeng.Yi@PSW.MM.Display.LCD.Stability, 2018/07/04, add for hx83112a lcd esd read reg*/
+int display_esd_recovery_lcm(void)
+{
+	if (atomic_read(&enable_lcm_recovery)) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+EXPORT_SYMBOL(display_esd_recovery_lcm);
+/* #endif */ /* OPLUS_BUG_STABILITY */
+
 static int primary_display_check_recovery_worker_kthread(void *data)
 {
 	struct sched_param param = { .sched_priority = 87 };
@@ -451,9 +508,22 @@ static int primary_display_check_recovery_worker_kthread(void *data)
 	sched_setscheduler(current, SCHED_RR, &param);
 
 	while (1) {
-		msleep(2000); /* 2s */
-		ret = wait_event_interruptible(_check_task_wq,
-					atomic_read(&_check_task_wakeup));
+		/* #ifndef OPLUS_BUG_STABILITY */
+		/*
+		* Yongpeng.Yi@PSW.MM.Display.LCD.Stability, 2018/01/25,
+		* add for esd recovery
+		*/
+		/* msleep(2000); */ /* 2s */
+		/* #else */
+		msleep(5000);
+		/* #endif */ /* OPLUS_BUG_STABILITY */
+/* #ifndef OPLUS_BUG_STABILITY */
+		/*Cong.Dai@PSW.BSP.TP, 2017/11/18, add for stop lcd esd check until firmware update*/
+		/*ret = wait_event_interruptible(_check_task_wq,
+					atomic_read(&_check_task_wakeup));*/
+/* #else */
+		ret = wait_event_interruptible(_check_task_wq, atomic_read(&_check_task_wakeup) && atomic_read(&esd_check_fw_updated));
+/* #endif */ /* OPLUS_BUG_STABILITY */
 		if (ret < 0) {
 			DISPINFO("[ESD]check thread waked up accidently\n");
 			continue;
@@ -563,6 +633,13 @@ int primary_display_esd_recovery(void)
 	/* after dsi_stop, we should enable the dsi basic irq. */
 	dsi_basic_irq_enable(DISP_MODULE_DSI0, NULL);
 	disp_lcm_suspend(primary_get_lcm());
+	/* #ifdef OPLUS_BUG_STABILITY */
+	/*
+	* Yongpeng.Yi@PSW.MM.Display.LCD.Stability, 2018/01/05,
+	* add power seq api for ulps
+	*/
+	disp_lcm_poweroff_after_ulps(primary_get_lcm());
+	/* #endif */ /* OPLUS_BUG_STABILITY */
 	DISPCHECK("[POWER]lcm suspend[end]\n");
 
 	mmprofile_log_ex(mmp_r, MMPROFILE_FLAG_PULSE, 0, 7);
@@ -576,6 +653,14 @@ int primary_display_esd_recovery(void)
 	DISPCHECK("[ESD]dsi power reset[end]\n");
 
 	DISPDBG("[ESD]lcm recover[begin]\n");
+	/* #ifdef OPLUS_BUG_STABILITY */
+	/*
+	* Yongpeng.Yi@PSW.MM.Display.LCD.Stability, 2018/01/05,
+	* add power seq api for ulps
+	*/
+	msleep(80);
+	disp_lcm_poweron_before_ulps(primary_get_lcm());
+	/* #endif */ /* OPLUS_BUG_STABILITY */
 	disp_lcm_esd_recover(primary_get_lcm());
 	DISPCHECK("[ESD]lcm recover[end]\n");
 	mmprofile_log_ex(mmp_r, MMPROFILE_FLAG_PULSE, 0, 8);
@@ -628,6 +713,15 @@ int primary_display_esd_recovery(void)
 
 done:
 	primary_display_manual_unlock();
+	//#ifdef OPLUS_BUG_STABILITY
+	/** Jianbin.Zhang@PSW.MM.Display.LCD.Stability, 2020/05/09,* add for esd recovery ramless oled*/
+	if (!primary_display_is_video_mode()) {
+		disp_lcm_set_backlight(primary_get_lcm(),NULL,esd_recovery_backlight_level);
+	} else {
+		disp_lcm_set_backlight(primary_get_lcm(),primary_get_dpmgr_handle(),esd_recovery_backlight_level);
+	}
+	flag_lcd_off = false;
+	//#endif
 	DISPCHECK("[ESD]ESD recovery end\n");
 	mmprofile_log_ex(mmp_r, MMPROFILE_FLAG_END, 0, 0);
 	dprec_logger_done(DPREC_LOGGER_ESD_RECOVERY, 0, 0);
@@ -1069,7 +1163,15 @@ static int external_display_check_recovery_worker_kthread(void *data)
 	sched_setscheduler(current, SCHED_RR, &param);
 
 	while (1) {
-		msleep(2000); /* 2s */
+		/* #ifndef OPLUS_BUG_STABILITY */
+		/*
+		* Yongpeng.Yi@PSW.MM.Display.LCD.Stability, 2017/12/13,
+		* modify for esd check 5s
+		*/
+		/* msleep(2000); */ /* 2s */
+		/* #else */
+		msleep(5000);/*5s*/
+		/* #endif */
 		ret = wait_event_interruptible(extd_check_task_wq,
 					atomic_read(&extd_check_task_wakeup));
 		if (ret < 0) {

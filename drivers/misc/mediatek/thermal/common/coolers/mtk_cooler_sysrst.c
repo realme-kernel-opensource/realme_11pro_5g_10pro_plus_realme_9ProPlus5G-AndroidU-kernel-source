@@ -21,6 +21,7 @@
 #include <linux/slab.h>
 #include <linux/seq_file.h>
 #include <tscpu_settings.h>
+#include <soc/oplus/system/oplus_project.h>
 
 /*=============================================================
  *Local variable definition
@@ -89,7 +90,21 @@ struct thermal_cooling_device *cdev, unsigned long state)
 		/* To trigger data abort to reset the system
 		 * for thermal protection.
 		 */
-		BUG();
+
+//REQ30019539125 2022/10/21,reasnoble temperature
+		if (mtk_thermal_get_temp(MTK_THERMAL_SENSOR_CPU) < 130000) {
+			tscpu_printk("%s,reasnoble temperature CPU T=%d, BTS T=%d\n", __func__,
+			mtk_thermal_get_temp(MTK_THERMAL_SENSOR_CPU),
+			mtk_thermal_get_temp(MTK_THERMAL_SENSOR_AP));
+#ifndef OPLUS_FEATURE_CHG_BASIC
+/*lizhijie@BSP.CHG.Basic 2019/11/25 delete for thermal protection*/
+		//Yunqing.Wang@BSP.Kernel.Stability 2020/9/3, if high temp aging version, disable thermal protection
+			if (get_eng_version() != HIGH_TEMP_AGING)
+				BUG();
+			else
+				tscpu_printk("should reset bypass \n");
+#endif
+		}
 #endif
 
 	}
@@ -127,8 +142,11 @@ struct thermal_cooling_device *cdev, unsigned long state)
 		/* To trigger data abort to reset the system
 		 * for thermal protection.
 		 */
-		BUG();
-
+		//Yunqing.Wang@BSP.Kernel.Stability 2020/9/3, if high temp aging version, disable thermal protection
+		if (get_eng_version() != HIGH_TEMP_AGING)
+			BUG();
+		else
+			tscpu_printk("should reset bypass \n");
 	}
 	return 0;
 }
@@ -164,8 +182,11 @@ struct thermal_cooling_device *cdev, unsigned long state)
 		/* To trigger data abort to reset the system
 		 * for thermal protection.
 		 */
-		BUG();
-
+		//Yunqing.Wang@BSP.Kernel.Stability 2020/9/3, if high temp aging version, disable thermal protection
+		if (get_eng_version() != HIGH_TEMP_AGING)
+			BUG();
+		else
+			tscpu_printk("should reset bypass \n");
 	}
 	return 0;
 }
@@ -201,8 +222,11 @@ struct thermal_cooling_device *cdev, unsigned long state)
 		/* To trigger data abort to reset the system
 		 * for thermal protection.
 		 */
-		BUG();
-
+		//Yunqing.Wang@BSP.Kernel.Stability 2020/9/3, if high temp aging version, disable thermal protection
+		if (get_eng_version() != HIGH_TEMP_AGING)
+			BUG();
+		else
+			tscpu_printk("should reset bypass \n");
 	}
 	return 0;
 }

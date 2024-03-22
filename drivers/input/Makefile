@@ -28,4 +28,16 @@ obj-$(CONFIG_INPUT_MISC)	+= misc/
 
 obj-$(CONFIG_INPUT_APMPOWER)	+= apm-power.o
 
+#ifdef OPLUS_FEATURE_SECURITY_COMMON
+#Fangjie.Lei@BSP.Security.Basic, 2021-08-02, Add for oplus_secure_common driver
+obj-$(CONFIG_OPLUS_SECURE)  += oplus_secure_drivers/
+#endif /*OPLUS_FEATURE_SECURITY_COMMON*/
+
+#ifdef OPLUS_FEATURE_FINGERPRINT
+#zhoubo@BSP.Biometrics.Fingerprint, 2021-07-06, add for fingerpring driver
+obj-$(CONFIG_OPLUS_FINGERPRINT) += oplus_fp_drivers/
+#Zhipeng.Ma@BSP.Biometrics.Fingerprint, 2022-06-21, add for uff fingerprint driver
+obj-$(CONFIG_OPLUS_FINGERPRINT)  += uff_fp_drivers/
+#endif /*OPLUS_FEATURE_FINGERPRINT*/
+
 obj-$(CONFIG_RMI4_CORE)		+= rmi4/

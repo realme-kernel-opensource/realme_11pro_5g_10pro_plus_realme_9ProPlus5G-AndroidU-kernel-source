@@ -15,6 +15,15 @@
 #include "mt6877-afe-common.h"
 #include "mt6877-afe-clk.h"
 
+#if IS_ENABLED(CONFIG_OPLUS_FEATURE_MM_FEEDBACK)
+/* Zhao.Pan@MULTIMEDIA.AUDIODRIVER.PLATFORM, 2022/01/25, Add for audio kernel feedback */
+#include "../feedback/oplus_audio_kernel_fb.h"
+#ifdef dev_err
+#undef dev_err
+#define dev_err dev_err_fb
+#endif
+#endif /* CONFIG_OPLUS_FEATURE_MM_FEEDBACK */
+
 #if defined(CONFIG_FPGA_EARLY_PORTING)
 /* if clk not ready, dummy clk function */
 int mt6877_init_clock(struct mtk_base_afe *afe) { return 0; }

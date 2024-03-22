@@ -110,6 +110,15 @@ int msdc_regulator_set_and_enable(struct regulator *reg, int powerVolt)
 #endif
 }
 
+//v-geguanghui@oppo.com, 2021/4/17, add quick power off for tf card,start
+void msdc_sd_power_off_quick(void)
+{
+	regmap_update_bits(regmap, MT6357_RG_LDO_VMCH_SW_OP_EN_ADDR, MT6357_RG_LDO_VMCH_SW_OP_EN_MASK, 1);
+	regmap_update_bits(regmap, MT6357_RG_LDO_VMCH_EN_ADDR,MT6357_RG_LDO_VMCH_EN_MASK, 0);
+	pr_err("sdcard removed and power off VMCH first!\n");
+}
+//v-geguanghui@oppo.com, 2021/4/17, add quick power off for tf card,end
+
 void msdc_ldo_power(u32 on, struct regulator *reg, int voltage_mv, u32 *status)
 {
 #if !defined(CONFIG_MTK_MSDC_BRING_UP_BYPASS)

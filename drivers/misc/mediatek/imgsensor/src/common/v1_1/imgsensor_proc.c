@@ -11,7 +11,10 @@
 
 #include "imgsensor.h"
 #include "imgsensor_proc.h"
-
+/*Henry.Chang@Cam.Drv add for 19551 20191010*/
+#ifndef OPLUS_FEATURE_CAMERA_COMMON
+#define OPLUS_FEATURE_CAMERA_COMMON
+#endif
 char mtk_ccm_name[camera_info_size] = { 0 };
 char mtk_i2c_dump[camera_info_size] = { 0 };
 
@@ -303,7 +306,7 @@ static ssize_t CAMERA_HW_Reg_Debug4(struct file *file, const char *buffer,
 
 	return count;
 }
-
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
 static ssize_t CAMERA_HW_Reg_Debug5(struct file *file, const char *buffer,
 					size_t count, loff_t *data)
 {
@@ -534,7 +537,7 @@ static ssize_t CAMERA_HW_Reg_Debug8(struct file *file, const char *buffer,
 
 	return count;
 }
-
+#endif
 /* Camera information */
 static int subsys_camera_info_read(struct seq_file *m, void *v)
 {

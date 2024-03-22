@@ -43,7 +43,10 @@ ccflags-y += -I$(srctree)/drivers/misc/mediatek/video/include/ \
              -I$(srctree)/drivers/iommu/ \
              -I$(srctree)/drivers/misc/mediatek/smi/variant/ \
              -I$(srctree)/drivers/misc/mediatek/include/mt-plat/
-
+#ifdef OPLYS_ARCH_EXTEND
+#JianBin.Zhang@PSW.MM.Display.LCD.Stability, 2020/05/14,modify for display decouping
+ccflags-y += -I$(srctree)/drivers/misc/oplus/
+#endif
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/m4u/$(MTK_PLATFORM) \
 		    -I$(srctree)/drivers/misc/mediatek/m4u/3.2
 ifeq ($(CONFIG_MTK_ION),y)

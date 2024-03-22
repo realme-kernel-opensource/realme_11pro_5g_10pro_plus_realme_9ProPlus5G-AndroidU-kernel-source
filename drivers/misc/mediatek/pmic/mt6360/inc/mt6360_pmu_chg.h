@@ -102,6 +102,11 @@ struct mt6360_chg_platform_data {
 #define MT6360_MASK_DCDTOUTEN	BIT(6)
 #define MT6360_SHFT_DCDTOUTEN	6
 
+#ifdef OPLUS_FEATURE_CHG_BASIC
+/* LiYue@BSP.CHG.Basic, 2019/09/13, Add for charging */
+#define MT6360_MASK_DCD_TIMEOUT         (0x30)
+#define MT6360_SHIFT_DCD_TIMEOUT        4
+#endif
 /* MT6360_PMU_USB_STATUS1 : 0x27 */
 #define MT6360_MASK_USB_STATUS	(0x70)
 #define MT6360_SHFT_USB_STATUS	(4)

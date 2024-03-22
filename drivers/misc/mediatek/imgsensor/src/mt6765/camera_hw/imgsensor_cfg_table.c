@@ -10,7 +10,11 @@
 /*#include "mt6306/mt6306.h"*/
 #include "mclk/mclk.h"
 
-
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+/*GaoWang@Cam.Drv add for pascal/pascalE camera BringUp 20201204*/
+#include <soc/oplus/system/oplus_project.h>
+#include <soc/oplus/system/oplus_project_oldcdt.h>
+#endif
 
 #include "imgsensor_cfg_table.h"
 

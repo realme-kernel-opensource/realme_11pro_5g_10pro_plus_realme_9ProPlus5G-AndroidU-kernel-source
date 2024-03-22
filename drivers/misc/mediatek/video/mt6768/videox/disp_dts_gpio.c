@@ -22,8 +22,26 @@ static const char *this_state_name[DTS_GPIO_STATE_MAX] = {
 	"lcm_rst_out1_gpio",
 	"lcm1_rst_out0_gpio",
 	"lcm1_rst_out1_gpio",
+#ifdef OPLUS_BUG_STABILITY
+//Hao.Liang@ODM_WT.MM.Display.Lcd, 2019/9/25, LCD voltage control
 	"lcd_bias_enp0_gpio",
 	"lcd_bias_enp1_gpio",
+	"lcd_bias_enn0_gpio",
+	"lcd_bias_enn1_gpio",
+#ifdef CONFIG_MTK_MT6382_BDG
+	"6382_rst_out0_gpio",
+	"6382_rst_out1_gpio",
+#endif
+	"lcd_vddio18_en0_gpio",
+	"lcd_vddio18_en1_gpio",
+#else
+	"lcd_bias_enp0_gpio",
+	"lcd_bias_enp1_gpio",
+#ifdef CONFIG_MTK_MT6382_BDG
+	"6382_rst_out0_gpio",
+	"6382_rst_out1_gpio",
+#endif
+#endif
 	"tp_rst_out1_gpio",
 	"tp_rst_out0_gpio",
 	"6382_rst_out1_gpio",
@@ -41,7 +59,7 @@ static long _set_state(const char *name)
 		pr_info("this pctrl is null\n");
 		return -1;
 	}
-
+pr_info("GPIO STATE state=%s\n", name);
 	pState = pinctrl_lookup_state(this_pctrl, name);
 	if (IS_ERR(pState)) {
 		pr_info("lookup state '%s' failed\n", name);

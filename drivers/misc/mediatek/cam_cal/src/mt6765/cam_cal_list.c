@@ -9,6 +9,40 @@
 #include "kd_imgsensor.h"
 
 struct stCAM_CAL_LIST_STRUCT g_camCalList[] = {
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+/*wuyingchao@camera.driver add for zhaoyun bringup 20211202*/
+	{ZHAOYUN_QTECH_MAIN_OV13B10_SENSOR_ID, 0xA0, Common_read_region},
+	{ZHAOYUNLITE_QTECH_MAIN_OV13B10_SENSOR_ID, 0xA0, Common_read_region},
+	{ZHAOYUN_SHINETECH_MAIN_S5KJN103_SENSOR_ID, 0xA0, Common_read_region},
+	{ZHAOYUN_SHINETECH_FRONT_OV08D10_SENSOR_ID, 0xA0, Common_read_region},
+	{ZHAOYUN_SHINETECH_MAIN_S5K3L6_SENSOR_ID, 0xA0, Common_read_region},
+	{ZHAOYUNLITE_QTECH_MAIN_S5K3L6_SENSOR_ID, 0xA0, Common_read_region},
+	{ZHAOYUN_OPTICS_FRONT_GC5035_SENSOR_ID, 0xA8, Common_read_region},
+	{LIMU_SHINETECH_MAIN_IMX355_SENSOR_ID, 0xA0, Common_read_region},
+	{LIMU_QTECH_MAIN_OV13B10_SENSOR_ID, 0xA0, Common_read_region},
+	{LIMU_SHINETECH_MAIN_S5KJN103_SENSOR_ID, 0xA0, Common_read_region},
+	{LIMU_OPTICS_FRONT_GC5035_SENSOR_ID, 0xA8, Common_read_region},
+/* XiangQin.Wang@Cam.Drv add for parker otp porting  2021/02/22 */
+	{PARKERA_QTECH_MAIN_OV13B10_SENSOR_ID, 0xA0, Common_read_region},
+	/* XiangQin.Wang@Cam.Drv add for parker ov13b2a otp porting  2021/04/10 */
+	{PARKERA_QTECH_MAIN_OV13B2A_SENSOR_ID, 0xA0, Common_read_region},
+	/* Suna.Li@Cam.Drv add for parker S5KJN103 otp porting  2021/04/19 */
+	{PARKERA_SHINETECH_MAIN_S5KJN103_SENSOR_ID, 0xA0, Common_read_region},
+	/* XiangQin.Wang@Cam.Drv add for parker ov08d10 otp porting  2021/04/10 */
+	{PARKERA_SHINETECH_FRONT_OV08D10_SENSOR_ID, 0xA0, Common_read_region},
+	/* YuWei.liu@Cam.Drv add for parker otp porting  2021/02/25 */
+	{PARKERA_QTECH_FRONT_IMX355_SENSOR_ID, 0xA8, Common_read_region},
+	/* YuWei.liu@Cam.Drv add for parker otp porting  2021/03/01 */
+	{PARKERA_HOLITECH_MACRO_GC02M1_SENSOR_ID, 0xA4, Common_read_region},
+	/* YuWei.liu@Cam.Drv add for parker otp porting  2021/03/01 */
+	{PARKERA_SHINETECH_MACRO_OV02B10_SENSOR_ID, 0xA4, Common_read_region},
+
+	/* wuyingchao@Cam.Drv add for parker-B S5KJN103 otp porting  2021/05/21 */
+	{PARKERB_SHINETECH_MAIN_S5KJN103_SENSOR_ID, 0xA0, Common_read_region},
+	{PARKERB_SUNNY_FRONT_S5K3P9SP_SENSOR_ID, 0xA8, Common_read_region},
+	{PARKERB_HLT_MICRO_GC02M1_SENSOR_ID, 0xA4, Common_read_region},
+	{PARKERB_SHINETECH_MACRO_OV02B10_SENSOR_ID, 0xA4, Common_read_region},
+#endif /* OPLUS_FEATURE_CAMERA_COMMON */
 	/*Below is commom sensor */
 	{IMX230_SENSOR_ID, 0xA0, Common_read_region},
 	{S5K2T7SP_SENSOR_ID, 0xA4, Common_read_region},

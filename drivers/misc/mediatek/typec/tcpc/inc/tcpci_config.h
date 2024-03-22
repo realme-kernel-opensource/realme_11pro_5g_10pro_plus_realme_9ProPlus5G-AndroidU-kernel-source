@@ -92,8 +92,11 @@
 
 #define CONFIG_TCPC_LOW_POWER_MODE
 #define CONFIG_TCPC_CLOCK_GATING
-
-/* #define CONFIG_TCPC_WATCHDOG_EN */
+#ifdef OPLUS_FEATURE_CHG_BASIC
+/********* workaround MO.230913213000256759: sc6607 workaround for pd abnormal start*********/
+#define CONFIG_TCPC_WATCHDOG_EN
+/********* workaround MO.230913213000256759: sc6607 workaround for pd abnormal end*********/
+#endif
 /* #define CONFIG_TCPC_INTRST_EN */
 #define CONFIG_TCPC_I2CRST_EN
 
@@ -127,14 +130,17 @@
 #define CONFIG_USB_PD_MODE_OPERATION
 
 #ifdef CONFIG_USB_PD_MODE_OPERATION
+#ifdef OPLUS_FEATURE_CHG_BASIC
+/* huangtongfeng@bsp.driver.chg  for pd+svooc */
+#undef CONFIG_USB_PD_ATTEMP_ENTER_MODE
 
-#define CONFIG_USB_PD_ATTEMP_ENTER_MODE
-
-#define CONFIG_USB_PD_ALT_MODE
+#undef CONFIG_USB_PD_ALT_MODE
 #ifdef CONFIG_USB_PD_ALT_MODE
 #define CONFIG_USB_PD_ALT_MODE_DFP
+
 #define CONFIG_USB_PD_ALT_MODE_RTDC
-#endif	/* CONFIG_USB_PD_ALT_MODE */
+#endif
+#endif
 
 /* #define CONFIG_USB_PD_DP_CHECK_CABLE */
 /* #define CONFIG_USB_PD_RTDC_CHECK_CABLE */
@@ -169,7 +175,10 @@
 /* PD30 Common Feature */
 
 #define CONFIG_USB_PD_REV30_SRC_CAP_EXT_LOCAL
-#define CONFIG_USB_PD_REV30_SRC_CAP_EXT_REMOTE
+#ifdef OPLUS_FEATURE_CHG_BASIC
+/* huangtongfeng@bsp.driver.chg  for pd+svooc */
+#undef CONFIG_USB_PD_REV30_SRC_CAP_EXT_REMOTE
+#endif
 
 #define CONFIG_USB_PD_REV30_BAT_CAP_LOCAL
 #define CONFIG_USB_PD_REV30_BAT_CAP_REMOTE
@@ -246,8 +255,11 @@
 
 #define CONFIG_USB_PD_KEEP_PARTNER_ID
 #define CONFIG_USB_PD_KEEP_SVIDS
-#define CONFIG_USB_PD_SRC_STARTUP_DISCOVER_ID
-#define CONFIG_USB_PD_DFP_READY_DISCOVER_ID
+#ifdef OPLUS_FEATURE_CHG_BASIC
+/* huangtongfeng@bsp.driver.chg  for pd+svooc */
+#undef CONFIG_USB_PD_SRC_STARTUP_DISCOVER_ID
+#undef CONFIG_USB_PD_DFP_READY_DISCOVER_ID
+#endif
 #define CONFIG_USB_PD_RESET_CABLE
 
 #define CONFIG_USB_PD_RANDOM_FLOW_DELAY
@@ -258,7 +270,7 @@
 #define CONFIG_USB_PD_DFP_FLOW_DELAY_RESET
 
 /* Only in startup */
-#define CONFIG_USB_PD_UFP_FLOW_DELAY
+#undef CONFIG_USB_PD_UFP_FLOW_DELAY
 #define CONFIG_USB_PD_VCONN_STABLE_DELAY
 #define CONFIG_USB_PD_VCONN_SAFE5V_ONLY
 
@@ -393,7 +405,12 @@
 #endif /* CONFIG_USB_POWER_DELIVERY */
 
 /* debug config */
+#ifdef OPLUS_FEATURE_CHG_BASIC
+/* Jianchao.Shi@PSW.BSP.CHG.Basic, 2019/01/01, sjc Modify for charging debug */
+#define CONFIG_USB_PD_DBG_ALERT_STATUS
+#else
 /* #define CONFIG_USB_PD_DBG_ALERT_STATUS */
+#endif
 /* #define CONFIG_USB_PD_DBG_SKIP_ALERT_HANDLER */
 #define CONFIG_USB_PD_DBG_DP_DFP_D_AUTO_UPDATE
 
@@ -415,7 +432,12 @@
 #define CONFIG_WD_SBU_PL_RETRY		2
 #define CONFIG_WD_SBU_PH_RETRY		2
 #define CONFIG_WD_SBU_PH_AUDDEV		200 /* mV */
+#ifndef OPLUS_FEATURE_CHG_BASIC
+/* Jianchao.Shi@BSP.CHG.Basic, 2019/02/26, sjc Modify for WD (1M->600K)*/
 #define CONFIG_WD_SBU_PH_LBOUND		1180 /* mV */
+#else
+#define CONFIG_WD_SBU_PH_LBOUND		982 /* mV */
+#endif
 #define CONFIG_WD_SBU_PH_LBOUND1_C2C	2850 /* mV */
 #define CONFIG_WD_SBU_PH_UBOUND1_C2C	3150 /* mV */
 #define CONFIG_WD_SBU_PH_UBOUND2_C2C	3800 /* mV */
@@ -429,6 +451,11 @@
 
  /* FIXME : skip build error */
 /* #define CONFIG_CABLE_TYPE_DETECTION */
-
+#ifdef OPLUS_FEATURE_CHG_BASIC
+/********* workaround MO.230913213000256759: sc6607 workaround for pd abnormal start*********/
+#define CONFIG_SOUTHCHIP_INT_INVAILD_RETRY_MAX 3
+#define CONFIG_SOUTHCHIP_ERROR_MSG_CNT_MAX 15
+/********* workaround MO.230913213000256759: sc6607 workaround for pd abnormal end*********/
+#endif /* OPLUS_FEATURE_CHG_BASIC */
 #endif /* CONFIG_TCPC_CLASS */
 #endif /* __LINUX_TCPC_CONFIG_H */

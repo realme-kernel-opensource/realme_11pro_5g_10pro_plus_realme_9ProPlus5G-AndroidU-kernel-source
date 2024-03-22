@@ -432,6 +432,10 @@ static int speed_monitor_thread(void *arg)
 
 			dl_speed = speed_caculate(delta, &s_dl_mon);
 			ul_speed = speed_caculate(delta, &s_ul_mon);
+			//#ifdef OPLUS_BUG_COMPATIBILITY
+			//Luoruihan@NETWORK.DATA.4731263,2022/12/27,add for MTK patch udp disable GRO
+			ccmni_set_cur_speed(dl_speed);
+			//#endif /*OPLUS_BUG_COMPATIBILITY*/
 			dvfs_cal_for_md_net(dl_speed, ul_speed);
 
 			if (!ul_speed && !dl_speed)

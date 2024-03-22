@@ -37,12 +37,13 @@
 #include "kd_imgsensor_errcode.h"
 #include "kd_camera_typedef.h"
 #include "imgsensor_ca.h"
+#include "imgsensor_hwcfg_custom.h"
 
 #define PFX "s5k4h7_camera_sensor"
 #define LOG_INF(format, args...) pr_debug(PFX "[%s] " format, __func__, ##args)
 static DEFINE_SPINLOCK(imgsensor_drv_lock);
-#ifndef VENDOR_EDIT
-//#define VENDOR_EDIT
+#ifndef OPLUS_FEATURE_CAMERA_COMMON
+//#define OPLUS_FEATURE_CAMERA_COMMON
 #endif
 
 #include "s5k4h7mipiraw_Sensor.h"
@@ -55,7 +56,7 @@ static DEFINE_SPINLOCK(imgsensor_drv_lock);
 #define I2C_BUFFER_LEN 3
 #endif
 
-#ifdef VENDOR_EDIT
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
 /*zhengjiang.zhu@Camera.Drv, 2017/10/2 add for register device info*/
 #define DEVICE_VERSION_S5K4H7    "s5k4h7"
 /*Caohua.Lin@Camera.Drv, 20180126 remove register device adapt with mt6771*/
@@ -164,7 +165,7 @@ static struct imgsensor_info_struct imgsensor_info = {
 	.sensor_output_dataformat = SENSOR_OUTPUT_FORMAT_RAW_Gr,
 	.mclk = 24,
 	.mipi_lane_num = SENSOR_MIPI_4_LANE,
-#ifndef VENDOR_EDIT
+#ifndef OPLUS_FEATURE_CAMERA_COMMON
 	/*Caohua.Lin@Camera.Driver  add for 17175  board 20180205 */
 	.i2c_addr_table = {0x20},
 #else
@@ -1029,7 +1030,7 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 			read_cmos_sensor_8(0x0000), read_cmos_sensor_8(0x0001),
 			read_cmos_sensor(0x0000));
 		if (*sensor_id == imgsensor_info.sensor_id) {
-#ifdef VENDOR_EDIT
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
 			/*
 			 * zhengjiang.zhu@Camera.Drv,
 			 * 2017/10/18 add for register device info
@@ -1040,7 +1041,7 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 			 * 20180126 remove to adapt with mt6771
 			 */
 			if (deviceInfo_register_value == 0x00) {
-				register_imgsensor_deviceinfo("Cam_f",
+				Oplusimgsensor_Registdeviceinfo("Cam_f",
 					DEVICE_VERSION_S5K4H7,
 					imgsensor_info.module_id);
 				deviceInfo_register_value = 0x01;
@@ -1094,7 +1095,7 @@ static kal_uint32 open(void)
 	kal_uint8 retry = 1;
 	kal_uint16 sensor_id = 0;
 
-#ifdef VENDOR_EDIT
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
 	/*zhengjiang.zhu@Camera.Drv, 2017/10/18 add for otp */
 	bool otp_flag = 0;
 #endif
@@ -1135,7 +1136,7 @@ static kal_uint32 open(void)
 
 	/* initail sequence write in  */
 	sensor_init();
-#ifdef VENDOR_EDIT
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
 	/*zhengjiang.zhu@Camera.Drv, 2017/10/18 add for otp */
 	otp_flag = S5K4H7_otp_update();
 	if (otp_flag)

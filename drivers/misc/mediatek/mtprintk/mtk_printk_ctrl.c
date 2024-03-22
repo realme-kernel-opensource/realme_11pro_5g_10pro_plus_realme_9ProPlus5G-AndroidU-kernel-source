@@ -38,10 +38,22 @@ int printk_ctrl;
 int printk_ctrl = 1;
 #endif
 
+//#ifdef OPLUS_BUG_STABILITY
+//zhouhengguo@BSP.Kernel.Stability, 2021/08/26, add oplus uart
+int printk_force_uart = 0;
+module_param_named(force_uart, printk_force_uart, int, 0644);
+//#endif /*OPLUS_BUG_STABILITY*/
+
 module_param_named(disable_uart, printk_ctrl, int, 0644);
 
 bool mt_get_uartlog_status(void)
 {
+//#ifdef OPLUS_BUG_STABILITY
+//zhouhengguo@BSP.Kernel.Stability, 2021/08/26, add oplus uart
+	if (printk_force_uart == 1) {
+		return true;
+	}
+//#endif /*OPLUS_BUG_STABILITY*/
 	if (printk_ctrl == 1)
 		return false;
 	else if ((printk_ctrl == 0) || (printk_ctrl == 2))
@@ -51,6 +63,12 @@ bool mt_get_uartlog_status(void)
 
 void mt_disable_uart(void)
 {
+//#ifdef OPLUS_BUG_STABILITY
+//zhouhengguo@BSP.Kernel.Stability, 2021/08/26, add oplus uart
+	if (printk_force_uart) {
+		return;
+	}
+//#endif /*OPLUS_BUG_STABILITY*/
 	/* uart print not always enable */
 	if (printk_ctrl != 2)
 		printk_ctrl = 1;

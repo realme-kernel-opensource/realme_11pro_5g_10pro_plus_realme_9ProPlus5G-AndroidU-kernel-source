@@ -10,7 +10,10 @@
 #include <linux/list.h>
 #include <linux/slab.h>
 #include <linux/cpufreq.h>
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+//Tanbowen@CMAERA.DRV, 2020/12/16, modify for load track need to consider whether if CPU is isolated. ALPS05476661
 #include <linux/cpumask.h>
+#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 #define TAG "[LT]"
 
@@ -115,10 +118,16 @@ static int lt_update_loading(struct LT_USER_DATA *lt_data)
 	lt_lockprove(__func__);
 	for_each_possible_cpu(cpu) {
 		cur_idle_time_i = get_cpu_idle_time(cpu, &cur_wall_time_i, 1);
+		#ifndef OPLUS_FEATURE_CAMERA_COMMON
+		//Tanbowen@CMAERA.DRV, 2020/12/16, modify for load track need to consider whether if CPU is isolated. ALPS05476661
+		cpu_idle_time += cur_idle_time_i - lt_data->prev_idle_time[cpu];
+		cpu_wall_time += cur_wall_time_i - lt_data->prev_wall_time[cpu];
+		#else /*OPLUS_FEATURE_CAMERA_COMMON*/
 		if (!cpu_isolated(cpu)) {
 			cpu_idle_time += cur_idle_time_i - lt_data->prev_idle_time[cpu];
 			cpu_wall_time += cur_wall_time_i - lt_data->prev_wall_time[cpu];
 		}
+		#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 		lt_data->prev_idle_time[cpu] = cur_idle_time_i;
 		lt_data->prev_wall_time[cpu] = cur_wall_time_i;
 	}

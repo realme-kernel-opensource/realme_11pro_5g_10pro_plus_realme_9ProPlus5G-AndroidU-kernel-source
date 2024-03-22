@@ -19,8 +19,32 @@ enum boot_mode_t {
 	KERNEL_POWER_OFF_CHARGING_BOOT = 8,
 	LOW_POWER_OFF_CHARGING_BOOT = 9,
 	DONGLE_BOOT = 10,
+#ifdef OPLUS_BUG_STABILITY
+/* Bin.Li@EXP.BSP.bootloader.bootflow, 2017/05/24, Add for oplus boot mode */
+	OPLUS_SAU_BOOT = 11,
+	SILENCE_BOOT = 12,
+/* xiaofan.yang@PSW.TECH.AgingTest, 2019/09/09,Add for factory agingtest */
+	AGING_BOOT = 998,
+	SAFE_BOOT = 999,
+#endif /* OPLUS_BUG_STABILITY */
 	UNKNOWN_BOOT
 };
+
+#ifdef OPLUS_BUG_STABILITY
+/* Bin.Li@EXP.BSP.bootloader.bootflow, 2017/05/24, Add for oplus boot mode */
+typedef enum
+{
+	OPLUS_NORMAL_BOOT = 0,
+	OPLUS_SILENCE_BOOT = 1,
+	OPLUS_SAFE_BOOT = 2,
+	/* xiaofan.yang@PSW.TECH.AgingTest, 2019/09/09,Add for factory agingtest */
+	OPLUS_AGING_BOOT = 3,
+	OPLUS_UNKNOWN_BOOT
+}OPLUS_BOOTMODE;
+
+extern OPLUS_BOOTMODE oplus_boot_mode;
+#endif /* OPLUS_BUG_STABILITY */
+
 
 /* for boot type usage */
 #define BOOTDEV_NAND            (0)

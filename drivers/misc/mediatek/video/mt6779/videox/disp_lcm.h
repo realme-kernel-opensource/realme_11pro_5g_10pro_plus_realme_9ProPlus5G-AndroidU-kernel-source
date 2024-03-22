@@ -70,5 +70,11 @@ int disp_lcm_is_partial_support(struct disp_lcm_handle *plcm);
 int disp_lcm_validate_roi(struct disp_lcm_handle *plcm, int *x, int *y,
 			  int *w, int *h);
 int disp_lcm_aod(struct disp_lcm_handle *plcm, int enter);
-
+/* #ifdef OPLUS_BUG_STABILITY */
+/* liping-m@PSW.MM.Display.LCD.Stability, 2018/07/21,
+* add power seq api for ulps
+*/
+int disp_lcm_poweron_before_ulps(struct disp_lcm_handle *plcm);
+int disp_lcm_poweroff_after_ulps(struct disp_lcm_handle *plcm);
+/* #endif */ /* OPLUS_BUG_STABILITY */
 #endif /* _DISP_LCM_H_ */

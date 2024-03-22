@@ -36,7 +36,18 @@ void rq_qos_cleanup(struct request_queue *q, struct bio *bio)
 			rqos->ops->cleanup(rqos, bio);
 	}
 }
+#if defined(OPLUS_FEATURE_SCHED_ASSIST) && defined(CONFIG_OPLUS_FEATURE_UXIO_FIRST)
+/*Huacai.Zhou@BSP.Kernel.IO, 2020-06-12,add ux io first opt*/
+void rq_qos_done(struct request_queue *q, struct request *rq, bool fgux)
+{
+	struct rq_qos *rqos;
 
+	for (rqos = q->rq_qos; rqos; rqos = rqos->next) {
+		if (rqos->ops->done)
+			rqos->ops->done(rqos, rq, fgux);
+	}
+}
+#else
 void rq_qos_done(struct request_queue *q, struct request *rq)
 {
 	struct rq_qos *rqos;
@@ -46,7 +57,7 @@ void rq_qos_done(struct request_queue *q, struct request *rq)
 			rqos->ops->done(rqos, rq);
 	}
 }
-
+#endif
 void rq_qos_issue(struct request_queue *q, struct request *rq)
 {
 	struct rq_qos *rqos;

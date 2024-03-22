@@ -1814,6 +1814,7 @@ void scp_sys_reset_ws(struct work_struct *ws)
 					, struct scp_work_struct, work);
 	unsigned int scp_reset_type = sws->flags;
 	unsigned long spin_flags;
+	int ret;
 
 	pr_debug("[SCP] %s(): remain %d times\n", __func__, scp_reset_counts);
 	/*notify scp functions stop*/
@@ -1893,7 +1894,11 @@ void scp_sys_reset_ws(struct work_struct *ws)
 	}
 
 	/* scp reset */
-	scp_sys_full_reset();
+	ret = scp_sys_full_reset();
+	if (ret) {
+		pr_err("[SCP] SCP sram state reset failed, stop SCP!\n");
+		return;
+	}
 
 #ifdef SCP_PARAMS_TO_SCP_SUPPORT
 	/* The function, sending parameters to scp must be anchored before

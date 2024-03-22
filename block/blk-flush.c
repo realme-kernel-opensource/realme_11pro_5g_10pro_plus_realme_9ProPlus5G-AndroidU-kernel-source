@@ -76,6 +76,12 @@
 #include "blk-mq-tag.h"
 #include "blk-mq-sched.h"
 
+
+#if defined(OPLUS_FEATURE_SCHED_ASSIST) && defined(CONFIG_OPLUS_FEATURE_UXIO_FIRST)
+/*Huacai.Zhou@BSP.Kernel.IO, 2020-06-12,add ux io first opt*/
+#include "uxio_first/uxio_first_opt.h"
+#endif 
+
 /* PREFLUSH/FUA sequences */
 enum {
 	REQ_FSEQ_PREFLUSH	= (1 << 0), /* pre-flushing in progress */
@@ -142,6 +148,11 @@ static bool blk_flush_queue_rq(struct request *rq, bool add_front)
 			list_add(&rq->queuelist, &rq->q->queue_head);
 		else
 			list_add_tail(&rq->queuelist, &rq->q->queue_head);
+
+#if defined(OPLUS_FEATURE_SCHED_ASSIST) && defined(CONFIG_OPLUS_FEATURE_UXIO_FIRST)
+/*Huacai.Zhou@BSP.Kernel.IO, 2020-06-12,add ux io first opt*/
+		queue_throtl_add_request(rq->q, rq, add_front);
+#endif /*OPLUS_FEATURE_SCHED_ASSIST*/
 		return true;
 	}
 }
@@ -497,7 +508,16 @@ void blk_insert_flush(struct request *rq)
 		if (q->mq_ops)
 			blk_mq_request_bypass_insert(rq, false);
 		else
+
+#if defined(OPLUS_FEATURE_SCHED_ASSIST) && defined(CONFIG_OPLUS_FEATURE_UXIO_FIRST)
+/*Huacai.Zhou@BSP.Kernel.IO, 2020-06-12,add ux io first opt*/
+		{
 			list_add_tail(&rq->queuelist, &q->queue_head);
+			queue_throtl_add_request(q, rq, false);
+		}
+#else
+			list_add_tail(&rq->queuelist, &q->queue_head);
+#endif /*OPLUS_FEATURE_FG_IO_OPT*/
 		return;
 	}
 

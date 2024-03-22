@@ -22,7 +22,13 @@
 #include "mtk_low_battery_throttling.h"
 #include "mtk_dynamic_loading_throttling.h"
 
+#ifndef OPLUS_FEATURE_CHG_BASIC
+/* Jianchao.Shi@BSP.CHG.Basic, 2019/02/12, sjc Modify for modify uvlo from 2.6v to 2.75v */
 #define POWER_UVLO_VOLT_LEVEL		2600
+#else
+#define POWER_UVLO_VOLT_LEVEL           2750
+#endif /* OPLUS_FEATURE_CHG_BASIC */
+
 #define IMAX_MAX_VALUE			5500
 #define DLPT_NOTIFY_FAST_UISOC		30
 #define	DLPT_VOLT_MIN			3100

@@ -27,9 +27,17 @@
 /* Local Macros                                                 */
 /*==============================================================*/
 #define LOG_BUF_SIZE		(128)
+
+#ifdef OPLUS_FEATURE_CHG_BASIC
+/* Zhonglin.Huang@CHG.BSP.BASIC, 2021/09/02, modify for reduce log */
+#define LOG_CHECK_INTERVAL      (1000)/* ms */
+#define LOG_MAX_CNT             (2) /* max log cnt within a check interval */
+#define LOG_MAX_DIFF_INTERVAL   (500)/* ms */
+#else
 #define LOG_CHECK_INTERVAL	(500)/* ms */
 #define LOG_MAX_CNT		(5) /* max log cnt within a check interval */
 #define LOG_MAX_DIFF_INTERVAL	(100)/* ms */
+#endif
 
 /*==============================================================*/
 /* Local variables                                              */

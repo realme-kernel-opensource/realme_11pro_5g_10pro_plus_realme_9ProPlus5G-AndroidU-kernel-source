@@ -218,8 +218,14 @@ static enum hrtimer_restart alarmtimer_fired(struct hrtimer *timer)
 	alarmtimer_dequeue(base, alarm);
 	spin_unlock_irqrestore(&base->lock, flags);
 
-	if (alarm->function)
+	if (alarm->function) {
 		restart = alarm->function(alarm, base->gettime());
+#ifdef OPLUS_FEATURE_ALARMINFO_STANDBY
+//Zhiwu.Xu@BSP.Power.Basic, 2022/03/25, add for get wakeup alarm's owner
+		if (alarm->type == ALARM_REALTIME || alarm->type == ALARM_BOOTTIME)
+			pr_info("alarm_type=%d, alarm_owner=%s, alarm_func=%pf\n", alarm->type, alarm->comm, alarm->function);
+#endif /* OPLUS_FEATURE_ALARMINFO_STANDBY */
+	}
 
 	spin_lock_irqsave(&base->lock, flags);
 	if (restart != ALARMTIMER_NORESTART) {
@@ -352,6 +358,10 @@ __alarm_init(struct alarm *alarm, enum alarmtimer_type type,
 	alarm->function = function;
 	alarm->type = type;
 	alarm->state = ALARMTIMER_STATE_INACTIVE;
+#ifdef OPLUS_FEATURE_ALARMINFO_STANDBY
+//Zhiwu.Xu@BSP.Power.Basic, 2022/03/25, add for get wakeup alarm's owner
+	memset(alarm->comm, 0, sizeof(alarm->comm));
+#endif /* OPLUS_FEATURE_ALARMINFO_STANDBY */
 }
 
 /**
@@ -384,6 +394,10 @@ void alarm_start(struct alarm *alarm, ktime_t start)
 	alarmtimer_enqueue(base, alarm);
 	hrtimer_start(&alarm->timer, alarm->node.expires, HRTIMER_MODE_ABS);
 	spin_unlock_irqrestore(&base->lock, flags);
+#ifdef OPLUS_FEATURE_ALARMINFO_STANDBY
+//Zhiwu.Xu@BSP.Power.Basic, 2022/03/25, add for get wakeup alarm's owner
+	memcpy(alarm->comm, current->comm, TASK_COMM_LEN);
+#endif /* OPLUS_FEATURE_ALARMINFO_STANDBY */
 
 	trace_alarmtimer_start(alarm, base->gettime());
 }

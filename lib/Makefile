@@ -279,6 +279,11 @@ UBSAN_SANITIZE_ubsan.o := n
 KASAN_SANITIZE_ubsan.o := n
 CFLAGS_ubsan.o := $(call cc-option, -fno-stack-protector) $(DISABLE_STACKLEAK_PLUGIN)
 
+# ifdef OPLUS_FEATURE_MEMLEAK_DETECT
+# /* Kui.Zhang@BSP.Kernel.MM, 2020-06-01, add memleak detect stack depot */
+obj-$(CONFIG_VMALLOC_DEBUG) += memleak_debug_stackdepot.o
+# endif
+
 obj-$(CONFIG_SBITMAP) += sbitmap.o
 
 obj-$(CONFIG_PARMAN) += parman.o

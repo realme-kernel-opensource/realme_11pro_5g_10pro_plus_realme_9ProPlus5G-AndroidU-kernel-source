@@ -423,6 +423,10 @@ enum DDP_IOCTL_NAME {
 	DDP_DSI_ENABLE_TE,
 	DDP_DSI_ENTER_IDLE,
 	DDP_DSI_EXIT_IDLE,
+	//#ifdef OPLUS_FEATURE_RAMLESS_AOD
+	/* YongPeng.Yi@PSW.MM.Display.LCD.Stability, 2020/01/15, add for 19357 ramless aod */
+	DDP_SWITCH_AOD_MODE,
+	//#endif /* OPLUS_FEATURE_RAMLESS_AOD */
 };
 
 struct ddp_io_golden_setting_arg {

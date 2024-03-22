@@ -136,6 +136,10 @@ static inline slab_flags_t kmem_cache_flags(unsigned int object_size,
 #elif defined(CONFIG_SLUB_DEBUG)
 #define SLAB_DEBUG_FLAGS (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER | \
 			  SLAB_TRACE | SLAB_CONSISTENCY_CHECKS)
+#elif defined(OPLUS_FEATURE_MEMLEAK_DETECT) && defined(CONFIG_KMALLOC_DEBUG)
+/* Kui.Zhang@tech.kernel.mm, 2020-02-12, create kmalloc cache with sotre user.
+*/
+#define SLAB_DEBUG_FLAGS (SLAB_STORE_USER)
 #else
 #define SLAB_DEBUG_FLAGS (0)
 #endif
@@ -472,7 +476,9 @@ struct kmem_cache_node {
 #ifdef CONFIG_SLUB
 	unsigned long nr_partial;
 	struct list_head partial;
-#ifdef CONFIG_SLUB_DEBUG
+#if defined(CONFIG_SLUB_DEBUG) || (defined (OPLUS_FEATURE_HEALTHINFO) && defined(CONFIG_SLAB_STAT_DEBUG)) || (defined(OPLUS_FEATURE_MEMLEAK_DETECT) && defined(CONFIG_KMALLOC_DEBUG))
+/* Kui.Zhang@PSW.BSP.Kernel.Performance, 2018-11-12, if SLAB_STAT_DEBUG is
+* is enabled, /proc/slabinfo is created for getting more slab details. */
 	atomic_long_t nr_slabs;
 	atomic_long_t total_objects;
 	struct list_head full;

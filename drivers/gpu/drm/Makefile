@@ -107,3 +107,7 @@ obj-$(CONFIG_DRM_TINYDRM) += tinydrm/
 obj-$(CONFIG_DRM_PL111) += pl111/
 obj-$(CONFIG_DRM_TVE200) += tve200/
 obj-$(CONFIG_DRM_XEN) += xen/
+#ifdef OPLUS_BUG_STABILITY
+#Zhijun.Ye@MM.Display.LCD, 2021/11/16, add for lcd
+obj-$(CONFIG_DRM_MEDIATEK) += oplus/
+#endif

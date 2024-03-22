@@ -19,6 +19,14 @@ enum sensorlist {
 	baro,
 	sar,
 	ois,
+#ifdef OPLUS_FEATURE_SENSOR
+//Chendai.Liang@BSP.Sensor add for oplus cct support
+	rear_als,
+	flicker,
+	cct,
+//tempest.chen@BSP.Sensor add for oplus down sar support
+	sars,
+#endif
 	maxhandle,
 };
 
@@ -51,6 +59,20 @@ int sensorlist_sensor_to_handle(int sensor)
 	case SENSOR_TYPE_OIS:
 		handle = ois;
 		break;
+#ifdef OPLUS_FEATURE_SENSOR
+	case SENSOR_TYPE_REAR_ALS:
+		handle = rear_als;
+		break;
+	case SENSOR_TYPE_FLICKER:
+		handle = flicker;
+		break;
+	case SENSOR_TYPE_CCT:
+		handle = cct;
+		break;
+//tempest.chen@BSP.Sensor add for oplus down sar support
+	case SENSOR_TYPE_SARS:
+		handle = sars;
+#endif
 	}
 	return handle;
 }
@@ -84,6 +106,21 @@ int sensorlist_handle_to_sensor(int handle)
 	case ois:
 		type = SENSOR_TYPE_OIS;
 		break;
+#ifdef OPLUS_FEATURE_SENSOR
+	case rear_als:
+		type = SENSOR_TYPE_REAR_ALS;
+		break;
+	case flicker:
+		type = SENSOR_TYPE_FLICKER;
+		break;
+	case cct:
+		type = SENSOR_TYPE_CCT;
+		break;
+//tempest.chen@BSP.Sensor add for oplus down sar support
+	case sars:
+		type = SENSOR_TYPE_SARS;
+		break;
+#endif
 	}
 	return type;
 }

@@ -39,13 +39,14 @@
 //#include "../imgsensor_i2c.h"
 //#include "imgsensor_common.h"
 #include "s5k3p9spmipiraw_Sensor.h"
+#include "imgsensor_hwcfg_custom.h"
 
 #ifdef CONFIG_MTK_CAM_SECURITY_SUPPORT
 #include "imgsensor_ca.h"
 #endif
 
-#ifdef VENDOR_EDIT
-	#undef VENDOR_EDIT
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+	#undef OPLUS_FEATURE_CAMERA_COMMON
 #endif
 #define USE_REMOSAIC 1
 
@@ -55,11 +56,9 @@
 
 
 
-#ifdef VENDOR_EDIT
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
 /*Caohua.Lin@Camera.Driver add for 18011/18311  board 20180723*/
 #define DEVICE_VERSION_S5k3P9SP     "s5k3p9sp"
-extern void register_imgsensor_deviceinfo(
-	char *name, char *version, u8 module_id);
 static kal_uint8 deviceInfo_register_value;
 static kal_uint32 streaming_control(kal_bool enable);
 #define MODULE_ID_OFFSET 0x0000
@@ -74,7 +73,7 @@ static DEFINE_SPINLOCK(imgsensor_drv_lock);
 
 static struct imgsensor_info_struct imgsensor_info = {
 		.sensor_id = S5K3P9SP_SENSOR_ID,
-		#ifdef VENDOR_EDIT
+		#ifdef OPLUS_FEATURE_CAMERA_COMMON
 		/*Caohua.Lin@Camera.Driver add for 18011/18311  board 20180723*/
 		.module_id = 0x04,	//0x01 Sunny,0x05 QTEK
 		#endif
@@ -246,7 +245,7 @@ static struct SENSOR_WINSIZE_INFO_STRUCT imgsensor_winsize_info[5] = {
  */
 /*0 flag   1-12 data*/
 
-#ifdef VENDOR_EDIT
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
 /*Caohua.Lin@Camera.Driver add for 18011/18311  board 20180723*/
 static kal_uint16 read_module_id(void)
 {
@@ -4245,7 +4244,7 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 				LOG_INF("i2c write id: 0x%x, sensor id: 0x%x\n",
 					imgsensor.i2c_write_id, *sensor_id);
 				*sensor_id = S5K3P9SP_SENSOR_ID;
-				#ifdef VENDOR_EDIT
+				#ifdef OPLUS_FEATURE_CAMERA_COMMON
 /*Caohua.Lin@Camera.Driver add for 18011/18311  board 20180723*/
 				imgsensor_info.module_id = read_module_id();
 /*Henry.Chang@Camera.Driver add for ModuleSN  20181216*/
@@ -4254,7 +4253,7 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 					imgsensor_info.module_id);
 				if (deviceInfo_register_value == 0x00 ||
 					deviceInfo_register_value == NULL) {
-					register_imgsensor_deviceinfo("Cam_f",
+					Oplusimgsensor_Registdeviceinfo("Cam_f",
 					DEVICE_VERSION_S5k3P9SP,
 					imgsensor_info.module_id);
 					deviceInfo_register_value = 0x01;
@@ -5126,7 +5125,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 		}
 		break;
 
-	#ifdef VENDOR_EDIT
+	#ifdef OPLUS_FEATURE_CAMERA_COMMON
 	/*Henry.Chang@Camera.Driver add for 18531 ModuleSN*/
 	case SENSOR_FEATURE_GET_MODULE_SN:
 		LOG_INF("s5k3p9 GET_MODULE_SN:%d %d\n",
@@ -5218,7 +5217,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 	case SENSOR_FEATURE_CHECK_SENSOR_ID:
 		get_imgsensor_id(feature_return_para_32);
 		break;
-	#ifdef VENDOR_EDIT
+	#ifdef OPLUS_FEATURE_CAMERA_COMMON
 	/*Caohua.Lin@CAmera, modify for different module 20180723*/
 	case SENSOR_FEATURE_CHECK_MODULE_ID:
 		*feature_return_para_32 = imgsensor_info.module_id;
@@ -5475,7 +5474,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 			break;
 		}
 		break;
-	#ifdef VENDOR_EDIT
+	#ifdef OPLUS_FEATURE_CAMERA_COMMON
 	/*Caohua.Lin@Camera.Driver 20180707 add for s5k3p9sp crosstalk*/
 	case SENSOR_FEATURE_GET_4CELL_DATA:
 		{

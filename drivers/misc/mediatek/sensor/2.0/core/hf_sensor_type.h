@@ -65,11 +65,29 @@ enum {
 	SENSOR_TYPE_GYRO_TEMPERATURE,
 	SENSOR_TYPE_SAR,
 	SENSOR_TYPE_OIS,
-	SENSOR_TYPE_FLICKER,
+	//SENSOR_TYPE_FLICKER,
 	SENSOR_TYPE_GYRO_SECONDARY,
+
+/*xiebaixue@PSW.BSP.Sensor, 2020/04/17, Add for oplus sensor algo driver*/
+#ifdef OPLUS_FEATURE_SENSOR
+	//SENSOR_TYPE_SENSOR_MAX,
+	OPLUS_VIRTAUL_SENSOR_START = 76,
+//Chendai.Liang@BSP.Sensor 2021/5/7, add for raw_mag support
+	SENSOR_TYPE_RAW_MAG = 97,
+//Chendai.Liang@BSP.Sensor add for oplus cct support
+	SENSOR_TYPE_REAR_ALS = 98,
+	SENSOR_TYPE_CCT = 99,
+	SENSOR_TYPE_FLICKER = 100,
+//tempest.chen@BSP.Sensor add for oplus down sar support
+	SENSOR_TYPE_SARS = 101,
+//Chao.Zeng@PSW.BSP.Sensor add for ai shutter 2020/9/28
+	SENSOR_TYPE_AI_SHUTTER,
+	SENSOR_TYPE_SENSOR_MAX,
+#else /*OPLUS_FEATURE_SENSOR*/
 	SENSOR_TYPE_FLICKER_REAR,
 	SENSOR_TYPE_RGBW_REAR,
 	SENSOR_TYPE_SENSOR_MAX,
+#endif /*OPLUS_FEATURE_SENSOR*/
 };
 
 enum {
@@ -132,11 +150,26 @@ enum {
 	ID_GYRO_TEMPERATURE,
 	ID_SAR,
 	ID_OIS,
-	ID_FLICKER,
 	ID_GYRO_SECONDARY,
 	ID_FLICKER_REAR,
 	ID_RGBW_REAR,
+/*xiebaixue@PSW.BSP.Sensor, 2020/04/17, Add for oplus sensor algo driver*/
+#ifdef OPLUS_FEATURE_SENSOR
+	ID_OPLUS_VIRTUAL_SENSOR_START,
+//Chendai.Liang@BSP.Sensor 2021/5/7, add for raw_mag support
+	ID_RAW_MAG = SENSOR_TYPE_RAW_MAG - ID_OFFSET,
+//Chendai.Liang@BSP.Sensor add for oplus cct support
+	ID_REAR_ALS = SENSOR_TYPE_REAR_ALS - ID_OFFSET,
+	ID_CCT = SENSOR_TYPE_CCT - ID_OFFSET,
+	ID_FLICKER = SENSOR_TYPE_FLICKER - ID_OFFSET,
+//tempest.chen@BSP.Sensor add for oplus down sar support
+	ID_SARS = SENSOR_TYPE_SARS - ID_OFFSET,
+//Chao.Zeng@PSW.BSP.Sensor add for ai shutter 2020/9/28
+	ID_AI_SHUTTER = SENSOR_TYPE_AI_SHUTTER - ID_OFFSET,
 	ID_SENSOR_MAX,
+#else /*OPLUS_FEATURE_SENSOR*/
+	ID_SENSOR_MAX,
+#endif /*OPLUS_FEATURE_SENSOR*/
 };
 
 enum {

@@ -18,6 +18,28 @@
 #include <linux/of.h>
 #endif
 
+#ifdef OPLUS_BUG_STABILITY
+//Hao.Liang@ODM_WT.MM.Display.Lcd, 2019/12/9, Add cabc function
+extern bool __attribute((weak)) oplus_flag_lcd_off;
+//Jiantao.Liu@ODM_WT.MM.Display.Lcd, 2020/07/08, LCD backlight switch 11bit to 12bit
+extern bool __attribute((weak)) oplus_display_twelvebits_support;
+/* #ifdef OPLUS_FEATURE_AOD */
+/*
+* Yongpeng.Yi@PSW.MM.Display.LCD.Stability, 2017/07/25,
+* add for lcd status flag
+*/
+extern bool oplus_flag_lcd_off;
+extern bool oplus_display_aod_support;
+extern bool oplus_display_hbm_support;
+/* #endif */ /* OPLUS_FEATURE_AOD */
+extern int __attribute__((weak)) tp_gesture_enable_flag(void)
+{
+	printk("ERROR: black gesture is invalid\n");
+	return 0;
+};
+/* MingQiang.Guo@PSW.BSP.TP.Function, 2017/12/30, Add for TP gesture*/
+extern int tp_gesture_enable_flag(void);
+#endif
 /* This macro and arrya is designed for multiple LCM support */
 /* for multiple LCM, we should assign I/F Port id in lcm driver, */
 /* such as DPI0, DSI0/1 */
@@ -1407,7 +1429,10 @@ int disp_lcm_suspend(struct disp_lcm_handle *plcm)
 
 		if (lcm_drv->suspend_power)
 			lcm_drv->suspend_power();
-
+#ifdef OPLUS_BUG_STABILITY
+		//Hao.Liang@ODM_WT.MM.Display.Lcd, 2019/12/9, Add cabc function
+		oplus_flag_lcd_off = true;
+#endif
 		return 0;
 	}
 	DISP_PR_ERR("lcm_drv is null\n");
@@ -1431,7 +1456,15 @@ int disp_lcm_resume(struct disp_lcm_handle *plcm)
 			DISPMSG("FATAL ERROR, lcm_drv->resume is null\n");
 			return -1;
 		}
-
+#ifdef OPLUS_BUG_STABILITY
+		//Hao.Liang@ODM_WT.MM.Display.Lcd, 2019/12/9, Add cabc function
+		oplus_flag_lcd_off = false;
+		/*
+		* Yongpeng.Yi@PSW.MM.Display.LCD.Stability, 2017/07/25,
+		* add for lcd status flag
+		*/
+		oplus_flag_lcd_off = false;
+#endif /* OPLUS_BUG_STABILITY */
 		return 0;
 	}
 	DISPMSG("lcm_drv is null\n");
@@ -1445,12 +1478,35 @@ int disp_lcm_aod(struct disp_lcm_handle *plcm, int enter)
 	DISPMSG("%s, enter:%d\n", __func__, enter);
 	if (_is_lcm_inited(plcm)) {
 		lcm_drv = plcm->drv;
+#ifdef OPLUS_BUG_STABILITY
+		/* #ifdef OPLUS_FEATURE_AOD */
+		/*
+		* Ling.Guo@PSW.MM.Display.LCD.Stability, 2019/01/15,
+		* add for aod
+		*/
+		if (oplus_display_aod_support) {
+			if (lcm_drv->resume_power)
+				lcm_drv->resume_power();
+		}
+#endif
+		/* #endif */ /* OPLUS_FEATURE_AOD */
 		if (lcm_drv->aod) {
 			lcm_drv->aod(enter);
 		} else {
 			DISP_PR_ERR("FATAL ERROR, lcm_drv->aod is null\n");
 			return -1;
 		}
+#ifdef OPLUS_BUG_STABILITY
+		/* #ifdef OPLUS_FEATURE_AOD */
+		/*
+		* Ling.Guo@PSW.MM.Display.LCD.Stability, 2019/01/15,
+		* add for lcd status flag
+		*/
+		if (oplus_display_aod_support) {
+			oplus_flag_lcd_off = false;
+		}
+#endif
+		/* #endif */ /* OPLUS_FEATURE_AOD */
 		return 0;
 	}
 
@@ -1488,9 +1544,119 @@ int disp_lcm_adjust_fps(void *cmdq, struct disp_lcm_handle *plcm, int fps)
 	return -1;
 }
 
+#ifdef OPLUS_BUG_STABILITY
+/* Liyan@ODM.HQ.Multimedia.LCM 2019/09/19 modified for backlight remapping */
+extern unsigned int esd_recovery_backlight_level;
+static int backlight_remapping_into_tddic_reg(struct disp_lcm_handle *plcm, int level_brightness)
+{
+	int level_temp, value_a, value_b;
+	int level;
+	struct LCM_PARAMS *lcm_params = NULL;
+	lcm_params = plcm->params;
+	level = level_brightness;
+	/* longyajun@ODM.HQ.Multimedia.LCM 2020/04/16 modified for backlight remapping */
+	if(oplus_display_twelvebits_support){
+		if (level > 0) {
+			pr_debug("%s level %d \n", __func__, level);
+			if (level >= lcm_params->brightness_max) {
+				level = lcm_params->brightness_max;
+				return level;
+			} else if(level < 2048){
+				if (lcm_params->blmap) {
+					if (level%32 > 0) {
+						level_temp = level/32 + 1;
+					} else {
+						level_temp = level/32;
+					}
+						level_temp = level_temp - 1;
+					if((level_temp*2 + 1) > lcm_params->blmap_size){
+						DISP_PR_ERR(" %s android brightness level is more than 2047 or LCM blmap_size is setting short than 128 = %d\n", __func__, lcm_params->blmap_size);
+						return 0;
+					}
+					value_a = lcm_params->blmap[level_temp*2];
+					value_b = lcm_params->blmap[level_temp*2 + 1];
+					if (level <= 384)
+						level = value_a*level/100 + value_b;
+					else
+						level = value_a*level/100 - value_b;
+						pr_debug(" %s value_a %d   value_b %d level_temp %d level %d\n", __func__, value_a, value_b, level_temp, level);
+					if (level < 0){
+						DISP_PR_ERR(" %s backlight value had been converted into a minus type = %d\n", __func__, level);
+						return 0;
+					}
+				}
+				if (level < lcm_params->brightness_min)
+					level = lcm_params->brightness_min;
+				if (level > 3053) {
+					level = 3053;
+				}
+					return level;
+			} else {
+				level = 51*level/100 + 2010;
+				if (level < 3054) {
+					level = 3054;
+				}
+				if (level > lcm_params->brightness_max) {
+					level = lcm_params->brightness_max;
+				}
+					return level;
+			}
+		}else if (level == 0){
+			return 0;
+		}else {
+			DISP_PR_ERR(" %s android brightness level is error = %d\n", __func__, level);
+			return 0;
+		}
+	}else{
+		if (level > 0) {
+			pr_debug("%s level %d \n", __func__, level);
+			if (level >= lcm_params->brightness_max) {
+				level = lcm_params->brightness_max;
+			} else if (lcm_params->blmap) {
+				if (level%32 > 0)
+					level_temp = level/32 + 1;
+				else
+					level_temp = level/32;
+				level_temp = level_temp - 1;
+				if((level_temp*2 + 1) > lcm_params->blmap_size){
+					DISP_PR_ERR(" %s android brightness level is more than 2047 or LCM blmap_size is setting short than 128 = %d\n", __func__, lcm_params->blmap_size);
+					return 0;
+				}
+				value_a = lcm_params->blmap[level_temp*2];
+				value_b = lcm_params->blmap[level_temp*2 + 1];
+				if (level <= 383)
+					level = value_a*level/100 + value_b;
+				else
+					level = value_a*level/100 - value_b;
+				pr_debug(" %s value_a %d   value_b %d level_temp %d level %d\n", __func__, value_a, value_b, level_temp, level);
+				if (level < 0){
+					DISP_PR_ERR(" %s backlight value had been converted into a minus type = %d\n", __func__, level);
+					return 0;
+				}
+			}
+			if (level < lcm_params->brightness_min)
+				level = lcm_params->brightness_min;
+			if (level > lcm_params->brightness_max) {
+				level = lcm_params->brightness_max;
+			}
+				return level;
+		} else if (level == 0){
+				return 0;
+		} else {
+			DISP_PR_ERR(" %s android brightness level is error = %d\n", __func__, level);
+			return 0;
+			}
+	}
+}
+#endif
+
 int disp_lcm_set_backlight(struct disp_lcm_handle *plcm,
 	void *handle, int level)
 {
+	#ifdef OPLUS_BUG_STABILITY
+	//Hao.liang@ODM_WT.MM.Display.Lcd, 2019/10/24, LCD backlight value remapping into register of tddic
+	int level_remap;
+	#endif /* OPLUS_BUG_STABILITY */
 	struct LCM_DRIVER *lcm_drv = NULL;
 
 	DISPFUNC();
@@ -1506,7 +1672,20 @@ int disp_lcm_set_backlight(struct disp_lcm_handle *plcm,
 
 	lcm_drv = plcm->drv;
 	if (lcm_drv->set_backlight_cmdq) {
-		lcm_drv->set_backlight_cmdq(handle, level);
+		#ifdef OPLUS_BUG_STABILITY
+			/* Liyan@ODM.HQ.Multimedia.LCM 2019/09/19 modified for backlight remapping */
+			esd_recovery_backlight_level = level; /* restore backlight level for esd recovery */
+		if(!oplus_display_hbm_support){
+			level_remap = backlight_remapping_into_tddic_reg(plcm, level);
+			DISPCHECK("%s: level_remap, level = %d, %d\n", __func__, level_remap, level);
+			lcm_drv->set_backlight_cmdq(handle, level_remap);
+		}else{
+			lcm_drv->set_backlight_cmdq(handle, level);
+			DISPCHECK("%s: no remap, level = %d\n", __func__, level);
+		}
+		#else
+			lcm_drv->set_backlight_cmdq(handle, level);
+		#endif
 	} else {
 		DISP_PR_ERR("FATAL ERROR, lcm_drv->set_backlight is null\n");
 		return -1;
@@ -1649,6 +1828,186 @@ int disp_lcm_set_lcm_cmd(struct disp_lcm_handle *plcm, void *cmdq_handle,
 	return -1;
 }
 
+#ifdef OPLUS_BUG_STABILITY
+/* Yongpeng.Yi@PSW.MultiMedia.Display.LCD.Machine, 2018/09/10, Add for Porting cabc interface */
+int disp_lcm_oplus_set_lcm_cabc_cmd(struct disp_lcm_handle *plcm, void *handle, unsigned int level)
+{
+	struct LCM_DRIVER *lcm_drv = NULL;
+
+	DISPFUNC();
+	if (_is_lcm_inited(plcm)) {
+		lcm_drv = plcm->drv;
+		if (lcm_drv->set_cabc_mode_cmdq) {
+			lcm_drv->set_cabc_mode_cmdq(handle, level);
+		} else {
+			DISP_PR_ERR("FATAL ERROR, lcm_drv->oppo_set_cabc_mode_cmdq is null\n");
+			return -1;
+		}
+
+		return 0;
+	}
+
+	DISP_PR_ERR("lcm_drv is null\n");
+	return -1;
+}
+
+/*
+* liping-m@PSW.MM.Display.LCD.Stability, 2018/07/20,
+* add power seq api for ulps
+*/
+
+#endif /* OPLUS_BUG_STABILITY */
+/* #ifdef OPLUS_FEATURE_AOD */
+/*
+* Yongpeng.Yi@PSW.MM.Display.LCD.Feature, 2018/09/26,
+* add for Aod feature
+*/
+int disp_lcm_aod_doze_resume(struct disp_lcm_handle *plcm)
+{
+	struct LCM_DRIVER *lcm_drv = NULL;
+
+	DISPFUNC();
+	if (_is_lcm_inited(plcm)) {
+		lcm_drv = plcm->drv;
+
+		if (lcm_drv->resume_power)
+			lcm_drv->resume_power();
+
+
+		if (lcm_drv->aod_doze_resume) {
+			lcm_drv->aod_doze_resume();
+		} else {
+			DISP_PR_ERR("FATAL ERROR, lcm_drv->resume is null\n");
+			return -1;
+		}
+		oplus_flag_lcd_off = false;
+		return 0;
+	}
+	DISP_PR_ERR("lcm_drv is null\n");
+	return -1;
+}
+
+/* #ifdef OPLUS_FEATURE_ONSCREENFINGERPRINT */
+/*
+* Yongpeng.Yi@PSW.MM.Display.LCD.Stability, 2018/01/16,
+* add for samsung lcd hbm node
+*/
+int disp_lcm_set_hbm(struct disp_lcm_handle *plcm, void *handle, unsigned int hbm_level)
+{
+	struct LCM_DRIVER *lcm_drv = NULL;
+
+	DISPFUNC();
+	if (_is_lcm_inited(plcm)) {
+		lcm_drv = plcm->drv;
+		if (lcm_drv->set_hbm_mode_cmdq) {
+			lcm_drv->set_hbm_mode_cmdq(handle, hbm_level);
+		} else {
+			DISP_PR_ERR("FATAL ERROR, lcm_drv->disp_lcm_set_hbm is null\n");
+			return -1;
+		}
+		return 0;
+	}
+	DISP_PR_ERR("lcm_drv is null\n");
+	return -1;
+}
+
+int disp_lcm_get_hbm_state(struct disp_lcm_handle *plcm)
+{
+	if (!disp_helper_get_option(DISP_OPT_LCM_HBM)) {
+		DISP_PR_INFO("! DISP_OPT_LCM_HBM\n");
+		return -1;
+	}
+
+	if (!_is_lcm_inited(plcm)) {
+		DISP_PR_INFO("lcm_drv is null\n");
+		return -1;
+	}
+
+	if (!plcm->drv->get_hbm_state) {
+		DISP_PR_INFO("FATAL ERROR, lcm_drv->get_hbm_state is null\n");
+		return -1;
+	}
+
+	return plcm->drv->get_hbm_state();
+}
+
+int disp_lcm_get_hbm_wait(struct disp_lcm_handle *plcm)
+{
+	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
+		return -1;
+
+	if (!_is_lcm_inited(plcm)) {
+		DISP_PR_INFO("lcm_drv is null\n");
+		return -1;
+	}
+
+	if (!plcm->drv->get_hbm_wait) {
+		DISP_PR_INFO("FATAL ERROR, lcm_drv->get_hbm_wait is null\n");
+		return -1;
+	}
+
+	return plcm->drv->get_hbm_wait();
+}
+
+int disp_lcm_set_hbm_wait(bool wait, struct disp_lcm_handle *plcm)
+{
+	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
+		return -1;
+
+	if (!_is_lcm_inited(plcm)) {
+		DISP_PR_INFO("lcm_drv is null\n");
+		return -1;
+	}
+
+	if (!plcm->drv->set_hbm_wait) {
+		DISP_PR_INFO("FATAL ERROR, lcm_drv->set_hbm_wait is null\n");
+		return -1;
+	}
+
+	plcm->drv->set_hbm_wait(wait);
+	return 0;
+}
+
+/* YongPeng.Yi@PSW.MM.Display.LCD.Stability, 2019/11/07, add for 19151 hbm set */
+int disp_lcm_set_hbm_wait_ramless(bool wait, struct disp_lcm_handle *plcm, void *qhandle)
+{
+	if (!_is_lcm_inited(plcm)) {
+		DISP_PR_ERR("lcm_drv is null\n");
+		return -1;
+	}
+
+	if (!plcm->drv->set_hbm_wait_ramless) {
+		DISP_PR_ERR("FATAL ERROR, lcm_drv->set_hbm_wait_ramless is null\n");
+		return -1;
+	}
+
+	plcm->drv->set_hbm_wait_ramless(wait, qhandle);
+
+	return 0;
+}
+
+extern bool oplus_display_aod_ramless_support;
+
+unsigned int disp_lcm_get_hbm_time(bool en, struct disp_lcm_handle *plcm)
+{
+	unsigned int time = 0;
+
+	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
+		return -1;
+
+	if (!_is_lcm_inited(plcm)) {
+		DISP_PR_INFO("lcm_drv is null\n");
+		return -1;
+	}
+
+	if (en)
+		time = plcm->params->hbm_en_time;
+	else
+		time = plcm->params->hbm_dis_time;
+
+	return time;
+}
+/* #endif */ /* OPLUS_FEATURE_ONSCREENFINGERPRINT */
 int disp_lcm_is_partial_support(struct disp_lcm_handle *plcm)
 {
 	struct LCM_DRIVER *lcm_drv = NULL;
@@ -1887,62 +2246,7 @@ done:
 #endif
 
 /*-------------------HBM start-----------------------------*/
-int disp_lcm_get_hbm_state(struct disp_lcm_handle *plcm)
-{
-	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
-		return -1;
-
-	if (!_is_lcm_inited(plcm)) {
-		DISP_PR_INFO("lcm_drv is null\n");
-		return -1;
-	}
-
-	if (!plcm->drv->get_hbm_state) {
-		DISP_PR_INFO("FATAL ERROR, lcm_drv->get_hbm_state is null\n");
-		return -1;
-	}
-
-	return plcm->drv->get_hbm_state();
-}
-
-int disp_lcm_get_hbm_wait(struct disp_lcm_handle *plcm)
-{
-	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
-		return -1;
-
-	if (!_is_lcm_inited(plcm)) {
-		DISP_PR_INFO("lcm_drv is null\n");
-		return -1;
-	}
-
-	if (!plcm->drv->get_hbm_wait) {
-		DISP_PR_INFO("FATAL ERROR, lcm_drv->get_hbm_wait is null\n");
-		return -1;
-	}
-
-	return plcm->drv->get_hbm_wait();
-}
-
-int disp_lcm_set_hbm_wait(bool wait, struct disp_lcm_handle *plcm)
-{
-	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
-		return -1;
-
-	if (!_is_lcm_inited(plcm)) {
-		DISP_PR_INFO("lcm_drv is null\n");
-		return -1;
-	}
-
-	if (!plcm->drv->set_hbm_wait) {
-		DISP_PR_INFO("FATAL ERROR, lcm_drv->set_hbm_wait is null\n");
-		return -1;
-	}
-
-	plcm->drv->set_hbm_wait(wait);
-	return 0;
-}
-
-int disp_lcm_set_hbm(bool en, struct disp_lcm_handle *plcm, void *qhandle)
+int disp_lcm_set_hbm_ramless(bool en, struct disp_lcm_handle *plcm, void *qhandle)
 {
 	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
 		return -1;
@@ -1960,26 +2264,6 @@ int disp_lcm_set_hbm(bool en, struct disp_lcm_handle *plcm, void *qhandle)
 	plcm->drv->set_hbm_cmdq(en, qhandle);
 
 	return 0;
-}
-
-unsigned int disp_lcm_get_hbm_time(bool en, struct disp_lcm_handle *plcm)
-{
-	unsigned int time = 0;
-
-	if (!disp_helper_get_option(DISP_OPT_LCM_HBM))
-		return -1;
-
-	if (!_is_lcm_inited(plcm)) {
-		DISP_PR_INFO("lcm_drv is null\n");
-		return -1;
-	}
-
-	if (en)
-		time = plcm->params->hbm_en_time;
-	else
-		time = plcm->params->hbm_dis_time;
-
-	return time;
 }
 /*-------------------HBM End-----------------------------*/
 

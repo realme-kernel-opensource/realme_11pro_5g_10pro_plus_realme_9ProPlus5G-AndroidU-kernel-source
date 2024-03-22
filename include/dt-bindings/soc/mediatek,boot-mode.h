@@ -13,5 +13,18 @@
 #define BOOT_DDR_RSVD	6
 #define BOOT_META	7
 #define BOOT_RPMBPK	8
+//#ifdef OPLUS_BUG_STABILITY
+//wanghao@BSP.Kernel.Driver,2020/5/20, add for reboot mode
+#define BOOT_KERNEL		9
+#define BOOT_SILENCE		10
+#define BOOT_SAU		11
+#define BOOT_SAFE		12
+//Hong.Zhang@TECH.BSP.Stability.Agingtest, 2020/07/22, Add for agingtest
+//#ifdef OPLUS_FEATURE_AGINGTEST
+#define BOOT_AGINGTEST		13
+//#endif /*OPLUS_FEATURE_AGINGTEST*/
+#define BOOT_FACTORY		14
+#define BOOT_EDL		15
+//#enddif
 
 #endif

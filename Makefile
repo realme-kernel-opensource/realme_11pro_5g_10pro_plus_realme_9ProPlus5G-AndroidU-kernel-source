@@ -6,7 +6,7 @@ EXTRAVERSION =
 NAME = "People's Front"
 
 # *DOCUMENTATION*
-# To see a list of typical targets execute "make help"
+#ssss:wqTo see a list of typical targets execute "make help"
 # More info can be located in ./README
 # Comments in this file are targeted only to the developer, do not
 # expect to learn how to build the kernel reading this file.
@@ -451,6 +451,30 @@ KBUILD_LDFLAGS :=
 GCC_PLUGINS_CFLAGS :=
 CLANG_FLAGS :=
 
+#ifdef OPLUS_FEATURE_CHG_BASIC
+#LiYue@BSP.CHG.Basic, 2019/09/12, add for 806 high/low temp aging
+ifeq ($(OPPO_HIGH_TEMP_VERSION),true)
+KBUILD_CFLAGS += -DCONFIG_HIGH_TEMP_VERSION
+endif
+#endif /* OPLUS_FEATURE_CHG_BASIC */
+
+#ifdef OPLUS_FEATURE_MEMLEAK_DETECT
+ifeq ($(AGING_DEBUG_MASK),1)
+# enable memleak detect daemon
+OPLUS_MEMLEAK_DETECT := true
+endif
+
+ifeq ($(TARGET_MEMLEAK_DETECT_TEST),0)
+# disable memleak detect daemon
+OPLUS_MEMLEAK_DETECT := false
+else ifeq ($(TARGET_MEMLEAK_DETECT_TEST),1)
+# enable memleak detect daemon
+OPLUS_MEMLEAK_DETECT := true
+endif
+
+export OPLUS_MEMLEAK_DETECT
+#endif
+
 export ARCH SRCARCH CONFIG_SHELL HOSTCC KBUILD_HOSTCFLAGS CROSS_COMPILE LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP OBJSIZE READELF KBUILD_HOSTLDFLAGS KBUILD_HOSTLDLIBS
 export MAKE LEX YACC AWK GENKSYMS INSTALLKERNEL PERL PYTHON PYTHON2 PYTHON3 UTS_MACHINE
@@ -518,6 +542,12 @@ KBUILD_CFLAGS	+= $(CLANG_FLAGS)
 KBUILD_AFLAGS	+= $(CLANG_FLAGS)
 export CLANG_FLAGS
 endif
+
+# Add for S bringup charger
+KBUILD_CFLAGS +=   -DOPLUS_FEATURE_CHG_BASIC
+KBUILD_CPPFLAGS += -DOPLUS_FEATURE_CHG_BASIC
+CFLAGS_KERNEL +=   -DOPLUS_FEATURE_CHG_BASIC
+CFLAGS_MODULE +=   -DOPLUS_FEATURE_CHG_BASIC
 
 RETPOLINE_CFLAGS_GCC := -mindirect-branch=thunk-extern -mindirect-branch-register
 RETPOLINE_VDSO_CFLAGS_GCC := -mindirect-branch=thunk-inline -mindirect-branch-register
@@ -592,6 +622,19 @@ ifeq ($(MAKECMDGOALS),)
 endif
 
 export KBUILD_MODULES KBUILD_BUILTIN
+
+#ifdef  OPLUS_BUG_STABILITY
+#LiPing-m@PSW.MM.Display.LCD.Machine, 2017/11/03, Add for OPLUS_BUG_STABILITY macro in kernel
+KBUILD_CFLAGS +=   -DOPLUS_BUG_STABILITY
+KBUILD_CPPFLAGS += -DOPLUS_BUG_STABILITY
+CFLAGS_KERNEL +=   -DOPLUS_BUG_STABILITY
+CFLAGS_MODULE +=   -DOPLUS_BUG_STABILITY
+#endif /* OPLUS_BUG_STABILITY */
+
+#ifdef OPLUS_ARCH_INJECT
+#Sunliang@ANDROID.BUILD, 2020/04/08, export global native features to kernel
+-include OplusKernelEnvConfig.mk
+#endif /* OPLUS_ARCH_INJECT */
 
 ifeq ($(KBUILD_EXTMOD),)
 # Objects we will link into vmlinux / subdirs we need to visit
@@ -1180,6 +1223,13 @@ endef
 include/config/kernel.release: $(srctree)/Makefile FORCE
 	$(call filechk,kernel.release)
 
+
+
+KBUILD_CFLAGS += -DOPLUS_FEATURE_SENSOR
+KBUILD_CFLAGS += -DOPLUS_FEATURE_SENSOR_ALGORITHM
+KBUILD_CFLAGS += -DOPLUS_FEATURE_SENSOR_SMEM
+KBUILD_CFLAGS += -DOPLUS_FEATURE_SENSOR_WISELIGHT
+
 # Additional helpers built in scripts/
 # Carefully list dependencies so we do not try to build scripts twice
 # in parallel
@@ -1367,6 +1417,12 @@ modules: $(vmlinux-dirs) $(if $(KBUILD_BUILTIN),vmlinux) modules.builtin
 	$(Q)$(AWK) '!x[$$0]++' $(vmlinux-dirs:%=$(objtree)/%/modules.order) > $(objtree)/modules.order
 	@$(kecho) '  Building modules, stage 2.';
 	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.modpost
+#ifdef OPLUS_FEATURE_SECURITY_COMMON
+#Meilin.Zhou@BSP.Security.Basic, ModuleSig, Fix the MTK issue,some ko is not signed. 2020-12-21
+ifeq ($(CONFIG_MODULE_SIG), y)
+	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.modsign
+endif
+#endif /*OPLUS_FEATURE_SECURITY_COMMON*/
 
 modules.builtin: $(vmlinux-dirs:%=%/modules.builtin)
 	$(Q)$(AWK) '!x[$$0]++' $^ > $(objtree)/modules.builtin

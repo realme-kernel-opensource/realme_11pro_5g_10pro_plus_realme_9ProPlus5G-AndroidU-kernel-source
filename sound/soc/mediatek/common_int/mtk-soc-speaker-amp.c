@@ -30,6 +30,8 @@ static struct mtk_spk_i2c_ctrl mtk_spk_list[MTK_SPK_TYPE_NUM] = {
 		.codec_dai_name = "snd-soc-dummy-dai",
 		.codec_name = "snd-soc-dummy",
 	},
+#ifndef OPLUS_FEATURE_CAMERA_COMMON
+//Tanbowen@CMAERA.DRV, 2020/12/16, delete for disable MTK speaker_amp
 #if defined(CONFIG_SND_SOC_RT5509)
 	[MTK_SPK_RICHTEK_RT5509] = {
 		.i2c_probe = rt5509_i2c_probe,
@@ -55,6 +57,7 @@ static struct mtk_spk_i2c_ctrl mtk_spk_list[MTK_SPK_TYPE_NUM] = {
 		.codec_name = "MT6660_MT_0",
 	},
 #endif /* CONFIG_SND_SOC_MT6660 */
+#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 };
 
 static int mtk_spk_i2c_probe(struct i2c_client *client,

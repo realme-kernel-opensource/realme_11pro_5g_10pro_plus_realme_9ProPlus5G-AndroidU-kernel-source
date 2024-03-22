@@ -218,3 +218,8 @@ obj-$(CONFIG_MFD_MT6370_PMU)    += mt6370/
 obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
 obj-$(CONFIG_MFD_MT6397)    += mt6397/
 endif
+
+#ifdef OPLUS_BUG_STABILITY
+#Dongru.Zhao@BSP.CHG.Basic, 2020/08/11, add for LCD&Camera LDO fan53870 wl2868c
+obj-$(CONFIG_OPLUS_PMIC_COMMON) += pmic_ldo_set/
+#endif

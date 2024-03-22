@@ -233,8 +233,13 @@ struct display_primary_path_context {
 	cmdqBackupSlotHandle night_light_params;
 	cmdqBackupSlotHandle hrt_idx_id;
 	cmdqBackupSlotHandle request_mmclk_450;
-
-
+/* #ifdef OPLUS_FEATURE_ONSCREENFINGERPRINT */
+	/*
+	* Ling.Guo@PSW.MM.Display.LCD.Stability, 2019/01/21,
+	* add for fingerprint notify frigger
+	*/
+	cmdqBackupSlotHandle fpd_fence;
+/* #endif */
 	int is_primary_sec;
 	int primary_display_scenario;
 #ifdef CONFIG_MTK_DISPLAY_120HZ_SUPPORT
@@ -383,6 +388,10 @@ int primary_display_pause(PRIMARY_DISPLAY_CALLBACK callback,
 			  unsigned int user_data);
 int primary_display_switch_dst_mode(int mode);
 int primary_display_get_lcm_index(void);
+/* #ifdef OPLUS_BUG_STABILITY */
+/* Xinqin.Yang@Cam.Tuning.Display, 2018/11/17, add for multi-lcms */
+int _ioctl_get_lcm_module_info(unsigned long arg);
+/* #endif */ /* OPLUS_BUG_STABILITY */
 int primary_display_force_set_fps(unsigned int keep, unsigned int skip);
 int primary_display_set_fps(int fps);
 int primary_display_get_lcm_max_refresh_rate(void);
@@ -399,7 +408,12 @@ int primary_display_cmdq_set_reg(unsigned int addr, unsigned int val);
 int primary_display_vsync_switch(int method);
 int primary_display_setlcm_cmd(unsigned int *lcm_cmd, unsigned int *lcm_count,
 			       unsigned int *lcm_value);
-int primary_display_ccci_mipi_callback(int en, unsigned int userdata);
+/* #ifndef OPLUS_FEATURE_MIPICLKCHANGE */
+/** Jianbin.Zhang@PSW.MM.Display.LCD.Stability, 2019/01/21, * add for mipi clk change*/
+/* int primary_display_ccci_mipi_callback(int en, unsigned int userdata); */
+/* #else */
+int primary_display_ccci_mipi_callback(int en, int userdata);
+/* #endif */
 
 void _cmdq_insert_wait_frame_done_token_mira(void *handle);
 int primary_display_get_max_layer(void);
@@ -466,6 +480,18 @@ int primary_display_set_scenario(int scenario);
 enum DISP_MODULE_ENUM _get_dst_module_by_lcm(struct disp_lcm_handle *plcm);
 extern void check_mm0_clk_sts(void);
 int primary_display_get_dvfs_last_req(void);
+
+/***************************************/
+/* #ifdef OPLUS_ARCH_EXTENDS */
+/** JianBin.Zhang@PSW.MM.Display.LCD.Stability, 2020/05/12,* add for extending static function to other module*/
+void oppo_cmdq_flush_config_handle_mira(void *handle, int blocking);
+void oppo_cmdq_handle_clear_dirty(struct cmdqRecStruct *cmdq_handle);
+void oppo_delayed_trigger_kick_set(int params);
+enum DISP_POWER_STATE oppo_primary_set_state(enum DISP_POWER_STATE new_state);
+void oppo_cmdq_reset_config_handle(void);
+void oppo_cmdq_build_trigger_loop(void);
+/* #endif */
+
 int primary_display_is_directlink_mode(void);
 
 extern struct lcm_fps_ctx_t lcm_fps_ctx;

@@ -392,17 +392,30 @@ int ip_mc_output(struct net *net, struct sock *sk, struct sk_buff *skb)
 
 int ip_output(struct net *net, struct sock *sk, struct sk_buff *skb)
 {
-	struct net_device *dev = skb_dst(skb)->dev;
+	//#ifdef OPLUS_FEATURE_RADIO_VIRTUALMODEM
+	//ShiQianhua@NETWORK.DATA.5474952, 2023/04/21, Modify for postrouting match indev
+	// struct net_device *dev = skb_dst(skb)->dev
+	//#else
+	struct net_device *dev = skb_dst(skb)->dev, *indev = skb->dev;
+	//#endif /*OPLUS_FEATURE_RADIO_VIRTUALMODEM*/
 
 	IP_UPD_PO_STATS(net, IPSTATS_MIB_OUT, skb->len);
 
 	skb->dev = dev;
 	skb->protocol = htons(ETH_P_IP);
 
+	//#ifdef OPLUS_FEATURE_RADIO_VIRTUALMODEM
+	//ShiQianhua@NETWORK.DATA.5474952, 2023/04/21, Modify for postrouting match indev
+	//return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING,
+	//		    net, sk, skb, NULL, dev,
+	//		    ip_finish_output,
+	//		    !(IPCB(skb)->flags & IPSKB_REROUTED));
+	// #else
 	return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING,
-			    net, sk, skb, NULL, dev,
+			    net, sk, skb, indev, dev,
 			    ip_finish_output,
 			    !(IPCB(skb)->flags & IPSKB_REROUTED));
+	//#endif /*OPLUS_FEATURE_RADIO_VIRTUALMODEM*/
 }
 
 /*

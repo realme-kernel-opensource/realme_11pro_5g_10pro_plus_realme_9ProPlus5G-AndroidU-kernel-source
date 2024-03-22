@@ -81,6 +81,10 @@ ccflags-y += -I$(srctree)/drivers/misc/mediatek/video/include/		\
              -I$(srctree)/drivers/devfreq/	\
              -I$(srctree)/drivers/misc/mediatek/include/mt-plat/ \
              -I$(srctree)/drivers/misc/mediatek/mmdvfs/
+#ifdef OPLUS_ARCH_EXTEND
+#JianBin.Zhang@PSW.MM.Display.LCD.Stability, 2020/05/14,modify for display decouping
+ccflags-y += -I$(srctree)/drivers/misc/oplus/
+#endif
 
 ifeq ($(CONFIG_MTK_ION),y)
 subdir-ccflags-y += -I$(srctree)/drivers/staging/android/mtk_ion \

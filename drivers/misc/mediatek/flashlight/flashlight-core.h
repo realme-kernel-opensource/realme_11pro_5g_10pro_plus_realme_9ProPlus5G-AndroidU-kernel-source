@@ -89,8 +89,11 @@ struct flashlight_device_id {
 	int channel;                     /* device channel */
 	int decouple;                    /* device decouple */
 };
+#ifndef OPLUS_FEATURE_CAMERA_COMMON
+//Tanbowen@CAMERA.DRV, 2020/09/28. Add for distinguish dual and single flashlight
 extern const struct flashlight_device_id flashlight_id[];
 extern const int flashlight_device_num;
+#endif
 
 struct flashlight_dev {
 	struct list_head node;
